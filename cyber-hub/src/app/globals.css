@@ -1,0 +1,219 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cyber-bg: #0a0a0f;
+  --cyber-surface: #12121a;
+  --cyber-border: #1e1e2e;
+  --cyber-primary: #00ff9d;
+  --cyber-secondary: #00d4ff;
+  --cyber-accent: #ff006e;
+  --cyber-warning: #ffd60a;
+  --cyber-text: #e4e4e7;
+  --cyber-muted: #71717a;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyber-primary) var(--cyber-surface);
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--cyber-surface);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--cyber-border);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--cyber-primary);
+}
+
+body {
+  background-color: var(--cyber-bg);
+  color: var(--cyber-text);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.font-mono {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* Matrix Grid Background */
+.matrix-grid {
+  background-image: linear-gradient(
+      rgba(0, 255, 157, 0.03) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(0, 255, 157, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Glowing Text Effects */
+.glow-text {
+  text-shadow: 0 0 10px var(--cyber-primary), 0 0 20px var(--cyber-primary),
+    0 0 30px var(--cyber-primary);
+}
+
+.glow-text-secondary {
+  text-shadow: 0 0 10px var(--cyber-secondary), 0 0 20px var(--cyber-secondary);
+}
+
+/* Card Hover Effects */
+.cyber-card {
+  @apply bg-cyber-surface border border-cyber-border rounded-lg transition-all duration-300;
+}
+
+.cyber-card:hover {
+  @apply border-cyber-primary;
+  box-shadow: 0 0 20px rgba(0, 255, 157, 0.1);
+}
+
+/* Terminal Input Style */
+.terminal-input {
+  @apply bg-transparent border-b border-cyber-border focus:border-cyber-primary outline-none transition-colors;
+}
+
+.terminal-input::placeholder {
+  @apply text-cyber-muted;
+}
+
+/* Scan Line Effect */
+.scan-line::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--cyber-primary),
+    transparent
+  );
+  animation: scan-line 8s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+/* Button Styles */
+.cyber-btn {
+  @apply px-4 py-2 bg-cyber-surface border border-cyber-primary text-cyber-primary
+         rounded font-mono text-sm uppercase tracking-wider transition-all duration-300;
+}
+
+.cyber-btn:hover {
+  @apply bg-cyber-primary text-cyber-bg;
+  box-shadow: 0 0 20px rgba(0, 255, 157, 0.4);
+}
+
+.cyber-btn-secondary {
+  @apply px-4 py-2 bg-cyber-surface border border-cyber-secondary text-cyber-secondary
+         rounded font-mono text-sm uppercase tracking-wider transition-all duration-300;
+}
+
+.cyber-btn-secondary:hover {
+  @apply bg-cyber-secondary text-cyber-bg;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+}
+
+/* Tag Styles */
+.cyber-tag {
+  @apply px-2 py-1 text-xs font-mono rounded bg-cyber-border text-cyber-muted;
+}
+
+.cyber-tag-primary {
+  @apply bg-cyber-primary/20 text-cyber-primary border border-cyber-primary/30;
+}
+
+/* Markdown Content Styles */
+.markdown-content h1 {
+  @apply text-3xl font-bold text-cyber-primary mb-4 mt-8;
+}
+
+.markdown-content h2 {
+  @apply text-2xl font-bold text-cyber-secondary mb-3 mt-6;
+}
+
+.markdown-content h3 {
+  @apply text-xl font-semibold text-cyber-text mb-2 mt-4;
+}
+
+.markdown-content p {
+  @apply mb-4 text-cyber-text/90 leading-relaxed;
+}
+
+.markdown-content code {
+  @apply bg-cyber-surface px-2 py-1 rounded font-mono text-cyber-primary text-sm;
+}
+
+.markdown-content pre {
+  @apply bg-cyber-surface p-4 rounded-lg overflow-x-auto mb-4 border border-cyber-border;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0;
+}
+
+.markdown-content ul {
+  @apply list-disc list-inside mb-4 space-y-1;
+}
+
+.markdown-content ol {
+  @apply list-decimal list-inside mb-4 space-y-1;
+}
+
+.markdown-content a {
+  @apply text-cyber-secondary hover:text-cyber-primary transition-colors underline;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-cyber-primary pl-4 italic text-cyber-muted my-4;
+}
+
+/* ============================================
+   EXCALIDRAW CSS ISOLATION
+   Reset ALL Tailwind styles inside Excalidraw
+   to get exact excalidraw.com appearance
+   ============================================ */
+
+.excalidraw-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  isolation: isolate;
+}
+
+/* CRITICAL: Reset all elements inside Excalidraw to browser defaults */
+.excalidraw-container *,
+.excalidraw-container *::before,
+.excalidraw-container *::after {
+  all: revert;
+  box-sizing: border-box;
+}
+
+/* Re-apply only the necessary container styles */
+.excalidraw-container .excalidraw {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
