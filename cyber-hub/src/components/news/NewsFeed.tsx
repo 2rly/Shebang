@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { NewsCard } from "./NewsCard";
 import { NEWS_SOURCES, ParsedNewsItem, NewsSourceKey } from "@/lib/news-sources";
+import { fetchAllFeeds } from "@/lib/rss-client";
 import { TerminalSearchInline } from "@/components/ui/TerminalSearch";
 
 export function NewsFeed() {
@@ -29,16 +30,9 @@ export function NewsFeed() {
     setError(null);
 
     try {
-      const sourcesParam = Array.from(selectedSources).join(",");
-      const response = await fetch(`/api/news?sources=${sourcesParam}&limit=50`);
-      const data = await response.json();
-
-      if (data.success) {
-        setNews(data.items);
-        setLastFetched(new Date(data.fetchedAt));
-      } else {
-        throw new Error(data.error || "Failed to fetch news");
-      }
+      const items = await fetchAllFeeds(Array.from(selectedSources), 50);
+      setNews(items);
+      setLastFetched(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {

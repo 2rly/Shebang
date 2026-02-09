@@ -15,6 +15,7 @@ import {
   Clock,
   ScrollText,
   Filter,
+  Search,
 } from "lucide-react";
 import { defaultCheatsheets, Cheatsheet } from "@/data/cheatsheets";
 import { TerminalSearch } from "@/components/ui/TerminalSearch";

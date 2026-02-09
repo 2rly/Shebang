@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Excalidraw, MainMenu, WelcomeScreen } from "@excalidraw/excalidraw";
-import type { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
+import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type {
   AppState,
   BinaryFiles,
   ExcalidrawImperativeAPI,
   LibraryItems,
-} from "@excalidraw/excalidraw/types/types";
+} from "@excalidraw/excalidraw/types";
 import { Network } from "lucide-react";
 
 const STORAGE_KEY = "shebang-topology";
@@ -208,6 +208,7 @@ export default function ExcalidrawCanvas() {
           <MainMenu.DefaultItems.SaveAsImage />
           <MainMenu.Separator />
           <MainMenu.DefaultItems.LiveCollaborationTrigger
+            isCollaborating={false}
             onSelect={() => {
               window.open("https://excalidraw.com/#room", "_blank");
             }}

@@ -1,12 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "export",
+  basePath: "/Shebang",
+  assetPrefix: "/Shebang/",
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
-    ],
+    unoptimized: true,
   },
   // Transpile Excalidraw for proper module resolution
   transpilePackages: ["@excalidraw/excalidraw"],

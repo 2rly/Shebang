@@ -297,7 +297,6 @@ export default function TopologyCanvas() {
           />
           <Controls
             className="!bg-cyber-surface !border-cyber-border !rounded-lg"
-            style={{ button: { backgroundColor: "#12121a", borderColor: "#1e1e2e" } }}
           />
           <MiniMap
             className="!bg-cyber-surface !border-cyber-border !rounded-lg"
