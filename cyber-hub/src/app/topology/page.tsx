@@ -3,8 +3,8 @@
 import dynamic from "next/dynamic";
 import { Network } from "lucide-react";
 
-// Dynamic import with SSR: false - CRITICAL
-// Excalidraw uses window/document APIs that don't exist on server
+// Dynamic import with SSR disabled — CRITICAL
+// Excalidraw depends on window/document APIs that don't exist during SSR
 const ExcalidrawWrapper = dynamic(
   () => import("@/components/topology/ExcalidrawWrapper"),
   {
@@ -14,7 +14,7 @@ const ExcalidrawWrapper = dynamic(
         style={{
           height: "calc(100vh - 64px)",
           width: "100%",
-          backgroundColor: "#1e1e1e",
+          backgroundColor: "#0a0a0f",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -33,8 +33,8 @@ const ExcalidrawWrapper = dynamic(
               style={{
                 width: "64px",
                 height: "64px",
-                border: "4px solid rgba(165, 216, 255, 0.3)",
-                borderTopColor: "#a5d8ff",
+                border: "4px solid rgba(0, 255, 157, 0.2)",
+                borderTopColor: "#00ff9d",
                 borderRadius: "50%",
                 animation: "excalidraw-spin 1s linear infinite",
               }}
@@ -43,7 +43,7 @@ const ExcalidrawWrapper = dynamic(
               style={{
                 width: "32px",
                 height: "32px",
-                color: "#a5d8ff",
+                color: "#00ff9d",
                 position: "absolute",
                 top: "50%",
                 left: "50%",
@@ -53,12 +53,14 @@ const ExcalidrawWrapper = dynamic(
           </div>
           <p
             style={{
-              color: "#868e96",
-              fontSize: "14px",
-              fontFamily: "monospace",
+              color: "#71717a",
+              fontSize: "13px",
+              fontFamily: "'JetBrains Mono', monospace",
+              letterSpacing: "0.5px",
             }}
           >
-            Loading <span style={{ color: "#a5d8ff" }}>Excalidraw</span>...
+            Loading{" "}
+            <span style={{ color: "#00ff9d" }}>NetSentinel</span>...
           </p>
         </div>
         <style>{`
@@ -74,7 +76,6 @@ const ExcalidrawWrapper = dynamic(
 export default function TopologyPage() {
   return (
     <div
-      className="excalidraw-container"
       style={{
         height: "calc(100vh - 64px)",
         width: "100%",
