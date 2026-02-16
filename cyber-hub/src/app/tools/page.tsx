@@ -7,12 +7,14 @@ import {
   Hash,
   Globe,
   Shield,
+  Search,
   ChevronRight,
 } from "lucide-react";
 import { Base64Tool } from "@/components/tools/Base64Tool";
 import { HashGenerator } from "@/components/tools/HashGenerator";
 import { IPLookup } from "@/components/tools/IPLookup";
 import { PasswordStrength } from "@/components/tools/PasswordStrength";
+import { OSINTLookup } from "@/components/tools/OSINTLookup";
 
 const tools = [
   {
@@ -46,6 +48,14 @@ const tools = [
     icon: Shield,
     color: "cyber-accent",
     component: PasswordStrength,
+  },
+  {
+    id: "osint",
+    name: "OSINT Lookup",
+    description: "Shodan, VirusTotal, DNS/WHOIS & more",
+    icon: Search,
+    color: "cyber-secondary",
+    component: OSINTLookup,
   },
 ];
 
