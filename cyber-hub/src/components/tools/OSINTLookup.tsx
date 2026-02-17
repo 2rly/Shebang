@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { Search, Loader2, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import {
+  Search, Loader2, AlertCircle, ChevronDown, ChevronUp,
+  Globe, Server, Shield, User, Bug, Radio, Database, FileSearch, Mail, AtSign, Fingerprint, Scan
+} from "lucide-react";
 import { detectInput, getInputTypeLabel, getServicesForType, getServiceLabel } from "@/lib/intelligence/input-detector";
 import { StatusBadge } from "@/components/intelligence/StatusBadge";
 import { ShodanCard } from "@/components/tools/results/ShodanCard";
@@ -27,6 +30,49 @@ const EXAMPLES = [
   { label: "Username", value: "johndoe" },
 ];
 
+const SERVICE_CATALOG = [
+  {
+    category: "Infrastructure Recon",
+    description: "Domain & IP intelligence",
+    icon: Server,
+    color: "cyber-secondary",
+    inputTypes: "IP, Domain",
+    tools: [
+      { name: "Crt.sh", desc: "Subdomain discovery via CT logs", icon: Globe, free: true, example: "example.com" },
+      { name: "AlienVault OTX", desc: "Threat intel for IPs/Domains", icon: Scan, free: false, envKey: "OTX_API_KEY", example: "8.8.8.8" },
+      { name: "Censys", desc: "Port scanning & host analysis", icon: Server, free: false, envKey: "CENSYS_API_ID", example: "1.1.1.1" },
+      { name: "GreyNoise", desc: "Internet noise & scanner analysis", icon: Radio, free: true, example: "8.8.8.8" },
+      { name: "AbuseIPDB", desc: "IP reputation & abuse reports", icon: Shield, free: false, envKey: "ABUSEIPDB_API_KEY", example: "118.25.6.39" },
+      { name: "Shodan", desc: "Internet-connected device search", icon: Database, free: false, envKey: "SHODAN_API_KEY", example: "8.8.8.8" },
+      { name: "DNS / WHOIS", desc: "DNS records & domain registration", icon: Globe, free: true, example: "example.com" },
+      { name: "Exploit-DB", desc: "Known exploits search", icon: Bug, free: true, example: "apache" },
+    ],
+  },
+  {
+    category: "Identity & Social Lookup",
+    description: "Username & Email intelligence",
+    icon: User,
+    color: "cyber-primary",
+    inputTypes: "Username, Email",
+    tools: [
+      { name: "Username Check", desc: "Availability across 20+ platforms (Sherlock-style)", icon: AtSign, free: true, example: "johndoe" },
+      { name: "Epieos", desc: "Email-to-identity lookup", icon: Mail, free: false, envKey: "EPIEOS_API_KEY", example: "test@example.com" },
+    ],
+  },
+  {
+    category: "Leaks & Threat Intel",
+    description: "Breach data & IoC lookup",
+    icon: Fingerprint,
+    color: "cyber-warning",
+    inputTypes: "Email, Hash",
+    tools: [
+      { name: "HIBP", desc: "Data breach checking (Have I Been Pwned)", icon: Shield, free: false, envKey: "HIBP_API_KEY", example: "test@example.com" },
+      { name: "ThreatFox", desc: "Indicator of Compromise (IoC) lookup", icon: Bug, free: true, example: "d41d8cd98f00b204e9800998ecf8427e" },
+      { name: "VirusTotal", desc: "Malware & URL scanning", icon: FileSearch, free: false, envKey: "VIRUSTOTAL_API_KEY", example: "d41d8cd98f00b204e9800998ecf8427e" },
+    ],
+  },
+];
+
 interface ServiceCardState {
   expanded: boolean;
 }
@@ -44,6 +90,7 @@ export function OSINTLookup() {
   const [response, setResponse] = useState<MagicSearchResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [cardStates, setCardStates] = useState<Record<string, ServiceCardState>>({});
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Live detection as user types
   const detection = query.trim() ? detectInput(query) : null;
@@ -66,8 +113,8 @@ export function OSINTLookup() {
     }
   }, [response]);
 
-  const handleSearch = useCallback(async () => {
-    const trimmed = query.trim();
+  const handleSearch = useCallback(async (searchQuery?: string) => {
+    const trimmed = (searchQuery ?? query).trim();
     if (!trimmed) return;
 
     setStatus("scanning");
@@ -104,6 +151,13 @@ export function OSINTLookup() {
       setErrorMsg(err instanceof Error ? err.message : "Request failed");
     }
   }, [query]);
+
+  const runWithQuery = useCallback((example: string) => {
+    setQuery(example);
+    inputRef.current?.focus();
+    // Use setTimeout so the state update settles before searching
+    setTimeout(() => handleSearch(example), 50);
+  }, [handleSearch]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -157,6 +211,7 @@ export function OSINTLookup() {
         <div className="flex gap-2">
           <div className="relative flex-1">
             <input
+              ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -172,7 +227,7 @@ export function OSINTLookup() {
             )}
           </div>
           <button
-            onClick={handleSearch}
+            onClick={() => handleSearch()}
             disabled={!query.trim() || status === "scanning"}
             className="cyber-btn flex items-center gap-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -227,6 +282,75 @@ export function OSINTLookup() {
         <div className="flex items-center gap-2 p-3 rounded-lg bg-cyber-accent/10 border border-cyber-accent/30">
           <AlertCircle className="w-4 h-4 text-cyber-accent shrink-0" />
           <p className="text-xs text-cyber-accent">{errorMsg}</p>
+        </div>
+      )}
+
+      {/* Available Tools Overview — shown when idle (no results yet) */}
+      {!response && status !== "scanning" && (
+        <div className="space-y-4">
+          {SERVICE_CATALOG.map((cat) => {
+            const CatIcon = cat.icon;
+            return (
+              <div key={cat.category} className="bg-cyber-surface border border-cyber-border rounded-lg overflow-hidden">
+                {/* Category Header */}
+                <div className={`p-3 border-b border-cyber-border/50 bg-${cat.color}/5`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`p-1.5 rounded-md bg-${cat.color}/15`}>
+                        <CatIcon className={`w-4 h-4 text-${cat.color}`} />
+                      </div>
+                      <div>
+                        <h3 className={`text-sm font-semibold text-${cat.color}`}>{cat.category}</h3>
+                        <p className="text-[10px] text-cyber-muted">{cat.description}</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono text-cyber-muted px-2 py-0.5 rounded bg-cyber-bg border border-cyber-border/50">
+                      {cat.inputTypes}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Tools Grid */}
+                <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {cat.tools.map((tool) => {
+                    const ToolIcon = tool.icon;
+                    return (
+                      <button
+                        key={tool.name}
+                        onClick={() => runWithQuery(tool.example)}
+                        className="flex items-start gap-2.5 p-2 rounded-lg bg-cyber-bg/50 border border-cyber-border/30
+                          hover:border-cyber-secondary/50 hover:bg-cyber-secondary/5 transition-all cursor-pointer text-left group"
+                      >
+                        <ToolIcon className="w-3.5 h-3.5 text-cyber-muted mt-0.5 shrink-0 group-hover:text-cyber-secondary transition-colors" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-medium text-cyber-text group-hover:text-cyber-secondary transition-colors">{tool.name}</span>
+                            {tool.free ? (
+                              <span className="text-[9px] font-mono px-1 py-px rounded bg-cyber-primary/10 text-cyber-primary border border-cyber-primary/20">
+                                FREE
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-mono px-1 py-px rounded bg-cyber-warning/10 text-cyber-warning border border-cyber-warning/20">
+                                API KEY
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-cyber-muted mt-0.5 leading-tight">{tool.desc}</p>
+                          <p className="text-[9px] text-cyber-secondary/60 mt-0.5 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                            Try: {tool.example}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          <p className="text-[10px] text-cyber-muted text-center">
+            Enter a query above — input type is auto-detected and relevant services are queried in parallel.
+          </p>
         </div>
       )}
 

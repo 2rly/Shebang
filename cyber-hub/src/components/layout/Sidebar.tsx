@@ -15,6 +15,7 @@ import {
   Network,
   Wrench,
   ScrollText,
+  ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/cheatsheets", icon: ScrollText, label: "Cheatsheets", shortLabel: "Cheats" },
   { href: "/topology", icon: Network, label: "Topology", shortLabel: "Topo" },
   { href: "/tools", icon: Wrench, label: "Cyber-Tools", shortLabel: "Tools" },
+  { href: "/security-audit", icon: ShieldCheck, label: "Code Auditor", shortLabel: "Audit" },
   { href: "/articles", icon: BookOpen, label: "Articles", shortLabel: "Blog" },
   { href: "/community", icon: Users, label: "Community", shortLabel: "Forum" },
   {
