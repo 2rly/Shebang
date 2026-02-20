@@ -16,6 +16,9 @@ import {
   Wrench,
   ScrollText,
   ShieldCheck,
+  SearchCode,
+  Radar,
+  Radio,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -27,6 +30,9 @@ const navItems = [
   { href: "/topology", icon: Network, label: "Topology", shortLabel: "Topo" },
   { href: "/tools", icon: Wrench, label: "Cyber-Tools", shortLabel: "Tools" },
   { href: "/security-audit", icon: ShieldCheck, label: "Code Auditor", shortLabel: "Audit" },
+  { href: "/shell-anatomy", icon: SearchCode, label: "Shell Anatomy", shortLabel: "Shell" },
+  { href: "/binary-intel", icon: Radar, label: "Binary Intel", shortLabel: "Intel" },
+  { href: "/release-radar", icon: Radio, label: "Release Radar", shortLabel: "Radar" },
   { href: "/articles", icon: BookOpen, label: "Articles", shortLabel: "Blog" },
   { href: "/community", icon: Users, label: "Community", shortLabel: "Forum" },
   {

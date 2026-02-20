@@ -67,7 +67,7 @@ async function fetchFeed(sourceKey: NewsSourceKey): Promise<ParsedNewsItem[]> {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
 
     const proxyUrl = `${CORS_PROXY}${encodeURIComponent(source.rssUrl)}`;
     const response = await fetch(proxyUrl, {
@@ -93,8 +93,14 @@ async function fetchFeed(sourceKey: NewsSourceKey): Promise<ParsedNewsItem[]> {
       pubDate: item.pubDate || new Date().toISOString(),
       description: item.description,
     }));
-  } catch (error) {
-    console.error(`Error fetching ${sourceKey}:`, error);
+  } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      console.warn(`[${sourceKey}] Request timed out after 20s`);
+    } else if (error instanceof TypeError) {
+      console.warn(`[${sourceKey}] Network error — CORS proxy may be down`);
+    } else {
+      console.error(`[${sourceKey}] Unexpected fetch error:`, error);
+    }
     return [];
   }
 }

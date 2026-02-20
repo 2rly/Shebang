@@ -8,7 +8,6 @@ import {
   Globe,
   Shield,
   Search,
-  ChevronRight,
 } from "lucide-react";
 import { Base64Tool } from "@/components/tools/Base64Tool";
 import { HashGenerator } from "@/components/tools/HashGenerator";
@@ -20,41 +19,51 @@ const tools = [
   {
     id: "base64",
     name: "Base64 Encoder/Decoder",
-    description: "Encode and decode Base64 strings in real-time",
+    shortDesc: "Encode & decode strings",
     icon: Binary,
-    color: "cyber-primary",
+    activeClasses: "border-cyber-primary bg-cyber-primary/10 text-cyber-primary",
+    iconBg: "bg-cyber-primary/20",
+    iconColor: "text-cyber-primary",
     component: Base64Tool,
   },
   {
     id: "hash",
     name: "Hash Generator",
-    description: "Generate MD5, SHA-1, SHA-256, and SHA-512 hashes",
+    shortDesc: "MD5, SHA-1, SHA-256 hashes",
     icon: Hash,
-    color: "cyber-secondary",
+    activeClasses: "border-cyber-secondary bg-cyber-secondary/10 text-cyber-secondary",
+    iconBg: "bg-cyber-secondary/20",
+    iconColor: "text-cyber-secondary",
     component: HashGenerator,
   },
   {
     id: "ip",
     name: "IP Lookup",
-    description: "Get geolocation and organization info for any IP",
+    shortDesc: "Geolocation & org info",
     icon: Globe,
-    color: "cyber-warning",
+    activeClasses: "border-cyber-warning bg-cyber-warning/10 text-cyber-warning",
+    iconBg: "bg-cyber-warning/20",
+    iconColor: "text-cyber-warning",
     component: IPLookup,
   },
   {
     id: "password",
     name: "Password Strength",
-    description: "Analyze password complexity and get suggestions",
+    shortDesc: "Analyze complexity",
     icon: Shield,
-    color: "cyber-accent",
+    activeClasses: "border-cyber-accent bg-cyber-accent/10 text-cyber-accent",
+    iconBg: "bg-cyber-accent/20",
+    iconColor: "text-cyber-accent",
     component: PasswordStrength,
   },
   {
     id: "osint",
     name: "OSINT Lookup",
-    description: "Shodan, VirusTotal, DNS/WHOIS & more",
+    shortDesc: "Shodan, VirusTotal & more",
     icon: Search,
-    color: "cyber-secondary",
+    activeClasses: "border-cyber-secondary bg-cyber-secondary/10 text-cyber-secondary",
+    iconBg: "bg-cyber-secondary/20",
+    iconColor: "text-cyber-secondary",
     component: OSINTLookup,
   },
 ];
@@ -67,7 +76,7 @@ export default function ToolsPage() {
   return (
     <div className="p-6 h-full flex flex-col">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-2xl font-bold text-cyber-text flex items-center gap-3">
           <div className="p-2 bg-cyber-primary/20 rounded-lg">
             <Wrench className="w-6 h-6 text-cyber-primary" />
@@ -81,87 +90,45 @@ export default function ToolsPage() {
         </p>
       </div>
 
-      <div className="flex gap-6 flex-1 min-h-0">
-        {/* Tool Selector */}
-        <div className="w-72 flex-shrink-0">
-          <div className="bg-cyber-surface border border-cyber-border rounded-lg p-3">
-            <h3 className="text-xs font-semibold text-cyber-muted uppercase tracking-wider mb-3 px-2">
-              Available Tools
-            </h3>
-            <div className="space-y-1">
-              {tools.map((tool) => {
-                const Icon = tool.icon;
-                const isActive = activeTool === tool.id;
-                return (
-                  <button
-                    key={tool.id}
-                    onClick={() => setActiveTool(tool.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left group
-                      ${isActive
-                        ? `bg-${tool.color}/10 border border-${tool.color}/30`
-                        : "hover:bg-cyber-border/50"
-                      }`}
-                  >
-                    <div className={`p-2 rounded-lg ${isActive ? `bg-${tool.color}/20` : "bg-cyber-bg"}`}>
-                      <Icon className={`w-5 h-5 ${isActive ? `text-${tool.color}` : "text-cyber-muted group-hover:text-cyber-text"}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${isActive ? `text-${tool.color}` : "text-cyber-text"}`}>
-                        {tool.name}
-                      </p>
-                      <p className="text-xs text-cyber-muted truncate">
-                        {tool.description}
-                      </p>
-                    </div>
-                    <ChevronRight className={`w-4 h-4 transition-all ${isActive ? `text-${tool.color}` : "text-cyber-muted opacity-0 group-hover:opacity-100"}`} />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Quick Tips */}
-          <div className="mt-4 bg-cyber-surface border border-cyber-border rounded-lg p-4">
-            <h4 className="text-xs font-semibold text-cyber-muted uppercase tracking-wider mb-2">
-              Pro Tips
-            </h4>
-            <ul className="space-y-2 text-xs text-cyber-muted">
-              <li className="flex items-start gap-2">
-                <span className="text-cyber-primary">•</span>
-                All tools run client-side for privacy
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-cyber-secondary">•</span>
-                No data is sent to external servers (except IP lookup)
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-cyber-warning">•</span>
-                Click output to copy to clipboard
-              </li>
-            </ul>
-          </div>
+      {/* Horizontal Tool Selector */}
+      <div className="mb-4 overflow-x-auto scrollbar-thin scrollbar-thumb-cyber-border">
+        <div className="flex flex-row gap-3 min-w-max pb-2">
+          {tools.map((tool) => {
+            const Icon = tool.icon;
+            const isActive = activeTool === tool.id;
+            return (
+              <button
+                key={tool.id}
+                onClick={() => setActiveTool(tool.id)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all whitespace-nowrap
+                  ${isActive
+                    ? tool.activeClasses
+                    : "border-cyber-border bg-cyber-surface text-cyber-text hover:bg-cyber-border/50 hover:border-cyber-muted"
+                  }`}
+              >
+                <div className={`p-2 rounded-lg ${isActive ? tool.iconBg : "bg-cyber-bg"}`}>
+                  <Icon className={`w-5 h-5 ${isActive ? tool.iconColor : "text-cyber-muted"}`} />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold leading-tight">
+                    {tool.name}
+                  </p>
+                  <p className="text-xs text-cyber-muted leading-tight mt-0.5">
+                    {tool.shortDesc}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
+      </div>
 
-        {/* Tool Content */}
-        <div className="flex-1 min-h-0">
-          <div className="bg-cyber-surface border border-cyber-border rounded-lg h-full flex flex-col">
-            {/* Tool Header */}
-            <div className={`p-4 border-b border-cyber-border bg-${currentTool.color}/5`}>
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-${currentTool.color}/20`}>
-                  <currentTool.icon className={`w-5 h-5 text-${currentTool.color}`} />
-                </div>
-                <div>
-                  <h2 className="font-semibold text-cyber-text">{currentTool.name}</h2>
-                  <p className="text-xs text-cyber-muted">{currentTool.description}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Tool Body */}
-            <div className="flex-1 p-4 overflow-y-auto">
-              <ToolComponent />
-            </div>
+      {/* Tool Content */}
+      <div className="flex-1 min-h-0">
+        <div className="bg-cyber-surface border border-cyber-border rounded-lg h-full flex flex-col">
+          {/* Tool Body */}
+          <div className="flex-1 p-4 overflow-y-auto">
+            <ToolComponent />
           </div>
         </div>
       </div>

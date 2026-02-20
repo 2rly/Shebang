@@ -190,30 +190,67 @@ body {
 
 /* ============================================
    EXCALIDRAW CSS ISOLATION
-   Reset ALL Tailwind styles inside Excalidraw
-   to get exact excalidraw.com appearance
+   Prevent Tailwind base resets from breaking
+   Excalidraw's own styles
    ============================================ */
 
 .excalidraw-container {
   width: 100%;
   height: 100%;
   position: relative;
-  isolation: isolate;
 }
 
-/* CRITICAL: Reset all elements inside Excalidraw to browser defaults */
-.excalidraw-container *,
-.excalidraw-container *::before,
-.excalidraw-container *::after {
-  all: revert;
-  box-sizing: border-box;
-}
-
-/* Re-apply only the necessary container styles */
 .excalidraw-container .excalidraw {
   width: 100% !important;
   height: 100% !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
+}
+
+/* Undo Tailwind's border/outline resets inside Excalidraw */
+.excalidraw-container .excalidraw button,
+.excalidraw-container .excalidraw input,
+.excalidraw-container .excalidraw select,
+.excalidraw-container .excalidraw textarea {
+  border-style: revert;
+  border-width: revert;
+  border-color: revert;
+  outline: revert;
+  padding: revert;
+  margin: revert;
+  font-family: revert;
+  font-size: revert;
+  line-height: revert;
+  color: revert;
+  background-color: revert;
+}
+
+/* Undo Tailwind's list-style reset */
+.excalidraw-container .excalidraw ul,
+.excalidraw-container .excalidraw ol {
+  list-style: revert;
+  padding: revert;
+  margin: revert;
+}
+
+/* Undo Tailwind's image reset */
+.excalidraw-container .excalidraw img,
+.excalidraw-container .excalidraw svg {
+  display: revert;
+  max-width: revert;
+}
+
+/* Undo Tailwind's heading reset */
+.excalidraw-container .excalidraw h1,
+.excalidraw-container .excalidraw h2,
+.excalidraw-container .excalidraw h3,
+.excalidraw-container .excalidraw h4,
+.excalidraw-container .excalidraw p {
+  margin: revert;
+  font-size: revert;
+  font-weight: revert;
+}
+
+/* Undo Tailwind's anchor reset */
+.excalidraw-container .excalidraw a {
+  color: revert;
+  text-decoration: revert;
 }
