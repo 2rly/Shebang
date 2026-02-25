@@ -19,8 +19,10 @@ import {
   SearchCode,
   Radar,
   Radio,
+  Gavel,
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const navItems = [
   { href: "/", icon: Shield, label: "Dashboard", shortLabel: "Home" },
@@ -43,9 +45,14 @@ const navItems = [
   },
 ];
 
+const adminItems = [
+  { href: "/admin/articles", icon: Gavel, label: "Moderation", shortLabel: "Mod" },
+];
+
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { user } = useAuth();
 
   return (
     <aside
@@ -69,7 +76,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-2">
+      <nav className="flex-1 py-4 px-2 overflow-y-auto">
         <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -104,6 +111,51 @@ export function Sidebar() {
               </li>
             );
           })}
+
+          {/* Admin section — only visible to admins */}
+          {user?.role === "admin" && (
+            <>
+              <li className="pt-3 pb-1 px-3">
+                {!collapsed && (
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-cyber-accent/60">
+                    Admin
+                  </span>
+                )}
+              </li>
+              {adminItems.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group
+                        ${
+                          isActive
+                            ? "bg-cyber-accent/10 text-cyber-accent border border-cyber-accent/30"
+                            : "text-cyber-muted hover:text-cyber-text hover:bg-cyber-border/50"
+                        }`}
+                      title={collapsed ? item.label : undefined}
+                    >
+                      <Icon
+                        className={`w-5 h-5 flex-shrink-0 ${
+                          isActive
+                            ? "text-cyber-accent"
+                            : "group-hover:text-cyber-accent"
+                        }`}
+                      />
+                      {!collapsed && (
+                        <span className="font-medium text-sm">{item.label}</span>
+                      )}
+                      {isActive && !collapsed && (
+                        <div className="ml-auto w-1.5 h-1.5 bg-cyber-accent rounded-full animate-pulse" />
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </>
+          )}
         </ul>
       </nav>
 

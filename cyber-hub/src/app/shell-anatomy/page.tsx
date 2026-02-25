@@ -110,9 +110,16 @@ export default function ShellAnatomyPage() {
                 onChange={(e) => setCommand(e.target.value)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                placeholder="tar -xvzf archive.tar.gz"
-                className="w-full bg-transparent outline-none font-mono text-sm text-cyber-text placeholder:text-cyber-muted/40 caret-transparent"
+                className="w-full bg-transparent outline-none font-mono text-sm text-cyber-text caret-transparent"
               />
+              {!command && (
+                <span
+                  className="absolute inset-0 pointer-events-none font-mono text-sm flex items-center"
+                  style={{ color: "#4b5563", opacity: 0.4 }}
+                >
+                  Dissect any shell command — powered by explainshell.com
+                </span>
+              )}
               <span
                 className={`absolute top-0 font-mono text-sm pointer-events-none transition-opacity ${
                   cursorVisible && isFocused ? "opacity-100" : "opacity-0"

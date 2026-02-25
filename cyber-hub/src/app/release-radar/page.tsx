@@ -1,285 +1,653 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  Radio,
-  ExternalLink,
-  Search,
-  ShieldAlert,
-  Package,
-  ArrowUpCircle,
-  CheckCircle2,
-  AlertTriangle,
-  CircleDot,
-  Filter,
-} from "lucide-react";
-import { securityProducts, SecurityProduct } from "@/data/security-products";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import { securityProducts, alertHistory } from "@/data/security-products";
+import { useAuth } from "@/components/auth/AuthProvider";
 
-type FilterMode = "all" | "outdated" | "cve" | "no-version";
+/* ── helpers — ported directly from dashboard.html <script> ─── */
 
-function versionStatus(p: SecurityProduct): "current" | "outdated" | "unknown" {
-  if (!p.currentVersion || !p.latestVersion) return "unknown";
-  const norm = (v: string) => v.replace(/^v/i, "").trim().toLowerCase();
-  return norm(p.currentVersion) === norm(p.latestVersion) ? "current" : "outdated";
+function barWidth(count: number, max: number): string {
+  if (max === 0) return "24px";
+  return Math.max(8, (count / max) * 100) + "%";
 }
 
-export default function ReleaseRadarPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState<FilterMode>("all");
+/**
+ * Normalise a version string for comparison.
+ * Strips leading "v", trims whitespace, lowercases, and splits into
+ * numeric / alphanumeric segments so "10.4.0" > "10.3.0" works correctly.
+ */
+function normParts(v: string): (number | string)[] {
+  return v
+    .replace(/^v/i, "")
+    .trim()
+    .toLowerCase()
+    .split(/[.\-+_ ]+/)
+    .map((p) => (/^\d+$/.test(p) ? Number(p) : p));
+}
 
-  const stats = useMemo(() => {
-    const total = securityProducts.length;
-    const withVersion = securityProducts.filter((p) => p.latestVersion).length;
-    const outdated = securityProducts.filter(
-      (p) => versionStatus(p) === "outdated"
-    ).length;
-    const totalCves = securityProducts.reduce((s, p) => s + p.cveCount, 0);
-    const totalPatches = securityProducts.reduce((s, p) => s + p.patchCount, 0);
-    return { total, withVersion, outdated, totalCves, totalPatches };
+function versionsEqual(a: string, b: string): boolean {
+  return a.replace(/^v/i, "").trim().toLowerCase() === b.replace(/^v/i, "").trim().toLowerCase();
+}
+
+/**
+ * Compare two version strings.
+ * Returns -1 if a < b, 0 if equal, 1 if a > b.
+ */
+function compareVersions(a: string, b: string): number {
+  if (versionsEqual(a, b)) return 0;
+  const pa = normParts(a);
+  const pb = normParts(b);
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const sa = pa[i] ?? 0;
+    const sb = pb[i] ?? 0;
+    if (typeof sa === "number" && typeof sb === "number") {
+      if (sa < sb) return -1;
+      if (sa > sb) return 1;
+    } else {
+      const cmp = String(sa).localeCompare(String(sb));
+      if (cmp !== 0) return cmp;
+    }
+  }
+  return 0;
+}
+
+type VerStatus = "match" | "outdated" | "empty" | "unknown";
+
+function versionStatus(cur: string, latest: string): VerStatus {
+  if (!cur) return "empty";
+  if (!latest || latest === "N/A" || latest === "SaaS") return "unknown";
+  if (versionsEqual(cur, latest)) return "match";
+  return compareVersions(cur, latest) < 0 ? "outdated" : "match";
+}
+
+/* ── component ─── */
+
+export default function ReleaseRadarPage() {
+  const { user, setShowAuthModal } = useAuth();
+  const [hasMounted, setHasMounted] = useState(false);
+  const [countdown, setCountdown] = useState("60:00");
+  const [lastCheck, setLastCheck] = useState("--:--:--");
+
+  // Current-version map: product name → user-entered version string
+  const [savedVersions, setSavedVersions] = useState<Record<string, string>>({});
+  // Track which row is in "editing" mode (product name)
+  const [editingRow, setEditingRow] = useState<string | null>(null);
+  // Temp input value while editing
+  const [editValue, setEditValue] = useState("");
+
+  // Hydration-safe mount detection
+  useEffect(() => {
+    setHasMounted(true);
+    setLastCheck(new Date().toLocaleTimeString());
   }, []);
 
-  const filtered = useMemo(() => {
-    let list = securityProducts;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.vendor.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q)
+  // Fetch versions from API when user logs in
+  useEffect(() => {
+    if (!user) {
+      setSavedVersions({});
+      return;
+    }
+    fetch("/api/radar/versions")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.versions) setSavedVersions(data.versions);
+      })
+      .catch(() => {});
+  }, [user]);
+
+  // Tick countdown every second like dashboard.html
+  useEffect(() => {
+    let seconds = 3600;
+    const id = setInterval(() => {
+      seconds = Math.max(0, seconds - 1);
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      setCountdown(`${m}:${String(s).padStart(2, "0")}`);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  /** Commit a version for a product — optimistic UI + persist to API */
+  const commitVersion = useCallback((productName: string, version: string) => {
+    const v = version.trim();
+    if (!v) return;
+    setSavedVersions((prev) => ({ ...prev, [productName]: v }));
+    setEditingRow(null);
+    setEditValue("");
+    // Persist in background
+    fetch("/api/radar/versions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productName, currentVersion: v }),
+    }).catch(() => {});
+  }, []);
+
+  /** Handle "Set Version" click — gate behind auth */
+  const handleSetVersionClick = useCallback((productName: string) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    setEditingRow(productName);
+    setEditValue("");
+  }, [user, setShowAuthModal]);
+
+  /** Handle "Set to Latest" click — gate behind auth */
+  const handleSetLatestClick = useCallback((productName: string, latestVersion: string) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+    commitVersion(productName, latestVersion);
+  }, [user, setShowAuthModal, commitVersion]);
+
+  /** Get effective current version: saved (API) > static data */
+  const getCurrent = useCallback(
+    (p: typeof securityProducts[number]): string => {
+      return savedVersions[p.name] || (user ? "" : p.currentVersion || "");
+    },
+    [savedVersions, user],
+  );
+
+  const stats = useMemo(() => {
+    const products = securityProducts;
+    const enabled = products.filter((p) => p.enabled).length;
+    const totalCves = products.reduce((s, p) => s + p.cveCount, 0);
+    const totalPatches = products.reduce((s, p) => s + p.patchCount, 0);
+    const totalVersionAlerts = alertHistory.filter((a) => a.type === "version").length;
+    const sev = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+    alertHistory.forEach((a) => {
+      if (a.severity in sev) sev[a.severity as keyof typeof sev]++;
+    });
+    const weekTotal = totalCves + totalPatches + totalVersionAlerts;
+    return { enabled, weekTotal, totalCves, totalPatches, totalVersionAlerts, sev };
+  }, []);
+
+  const cveAlerts = alertHistory.filter((a) => a.type === "cve" || a.type === "patch");
+  const maxType = Math.max(stats.totalCves, stats.totalPatches, stats.totalVersionAlerts, 1);
+  const maxSev = Math.max(...Object.values(stats.sev), 1);
+
+  const exportCSV = () => {
+    let csv = "\uFEFF";
+    csv += "Security Monitor Export - " + new Date().toLocaleString() + "\n\n";
+    csv += "SOLUTION VERSIONS\n";
+    csv += "#,Product,Vendor,Current Version,Latest Version,Source,CVEs,Patches,Status\n";
+    securityProducts.forEach((p, i) => {
+      const cur = getCurrent(p) || "—";
+      const ver = p.latestVersion || "N/A";
+      const st = !p.enabled ? "Disabled" : p.cveCount > 0 ? p.cveCount + " CVE" : "Clean";
+      csv += `${i + 1},"${p.name}","${p.vendor}","${cur}","${ver}",${(p.versionSource || "").toUpperCase()},${p.cveCount},${p.patchCount},${st}\n`;
+    });
+    csv += "\n\nCVE / VULNERABILITY ALERTS\n";
+    csv += "Type,Product,Title,Severity,Date,Link\n";
+    cveAlerts.forEach((a) => {
+      const tl = a.type === "cve" ? "CVE / Vulnerability" : "Critical Patch";
+      csv += `"${tl}","${a.product}","${a.title.replace(/"/g, '""')}","${a.severity}","${a.date}","${a.link}"\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `security_monitor_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  /*
+   * The entire render below uses raw inline styles that exactly match
+   * the dashboard.html CSS values.  This guarantees a 1:1 visual clone
+   * regardless of Tailwind preflight or parent layout styles.
+   */
+
+  // Shared style constants — mirrors dashboard.html :root
+  const C = {
+    bg:     "#0d1117",
+    card:   "#161b22",
+    border: "#21262d",
+    text:   "#c9d1d9",
+    muted:  "#484f58",
+    accent: "#e94560",
+    blue:   "#58a6ff",
+    green:  "#2ecc71",
+    orange: "#e67e22",
+    yellow: "#f1c40f",
+    red:    "#e74c3c",
+    purple: "#a855f7",
+    mono:   "'Cascadia Code','Consolas','JetBrains Mono',monospace",
+  } as const;
+
+  const S = {
+    statCard: { background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "18px 20px" } as React.CSSProperties,
+    label:    { fontSize: 10, textTransform: "uppercase" as const, letterSpacing: ".8px", color: C.muted, marginBottom: 5 },
+    value:    { fontSize: 28, fontWeight: 700, color: C.text, lineHeight: 1.1 } as React.CSSProperties,
+    sub:      { fontSize: 11, color: C.muted, marginTop: 3 },
+    chartCard:{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 22 } as React.CSSProperties,
+    chartH3:  { fontSize: 13, marginBottom: 14, color: C.muted, textTransform: "uppercase" as const, letterSpacing: ".5px", fontWeight: 400 },
+    barRow:   { display: "flex", alignItems: "center", gap: 10, marginBottom: 10 } as React.CSSProperties,
+    barLabel: { width: 70, fontSize: 12, textAlign: "right" as const, color: C.muted },
+    barTrack: { flex: 1, height: 24, background: C.bg, borderRadius: 6, overflow: "hidden" as const } as React.CSSProperties,
+    sectionCard: { background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden" as const, marginBottom: 28 } as React.CSSProperties,
+    sectionH3: { padding: "18px 22px", fontSize: 14, color: C.muted, textTransform: "uppercase" as const, letterSpacing: ".5px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 10, margin: 0, fontWeight: 600 } as React.CSSProperties,
+    th: { background: C.bg, padding: "10px 14px", textAlign: "left" as const, fontSize: 10, textTransform: "uppercase" as const, letterSpacing: ".8px", color: C.muted, fontWeight: 600 } as React.CSSProperties,
+    td: { padding: "10px 14px", borderBottom: `1px solid ${C.border}`, fontSize: 13, color: C.text } as React.CSSProperties,
+    actionBtn: { display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 18px", border: `1px solid ${C.border}`, borderRadius: 8, background: C.card, fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all .15s", fontFamily: "inherit" } as React.CSSProperties,
+  };
+
+  const barFillStyle = (w: string, color: string): React.CSSProperties => ({
+    height: "100%", borderRadius: 6, display: "flex", alignItems: "center",
+    paddingLeft: 10, fontSize: 11, fontWeight: 700, color: "#fff",
+    minWidth: 24, transition: "width .6s ease", width: w, background: color,
+  });
+
+  const verBadge = (version: string, link?: string, overrideBg?: string, overrideColor?: string) => {
+    const badgeColor = overrideColor || C.blue;
+    const style: React.CSSProperties = {
+      display: "inline-block", padding: "3px 10px", borderRadius: 5,
+      fontSize: 12, fontWeight: 700, letterSpacing: ".3px",
+      fontFamily: C.mono,
+      background: overrideBg || "rgba(88,166,255,.12)",
+      color: badgeColor,
+    };
+    if (link) {
+      return (
+        <a href={link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={style}>{version}</span>
+          <span style={{ fontSize: 11, color: badgeColor, opacity: 0.7 }}>↗</span>
+        </a>
       );
     }
-    switch (filter) {
-      case "outdated":
-        list = list.filter((p) => versionStatus(p) === "outdated");
-        break;
-      case "cve":
-        list = list.filter((p) => p.cveCount > 0);
-        break;
-      case "no-version":
-        list = list.filter((p) => !p.latestVersion);
-        break;
+    return <span style={style}>{version}</span>;
+  };
+
+  const naBadge = <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 5, fontSize: 12, fontWeight: 700, fontFamily: C.mono, background: "rgba(72,79,88,.15)", color: C.muted }}>N/A</span>;
+
+  const srcBadge = (src: string, link?: string) => {
+    const map: Record<string, { bg: string; color: string }> = {
+      rss: { bg: "rgba(168,85,247,.12)", color: C.purple },
+      web: { bg: "rgba(88,166,255,.12)", color: C.blue },
+      nvd: { bg: "rgba(230,126,34,.12)", color: C.orange },
+    };
+    const s = map[src];
+    if (!s) return null;
+    const badge = <span style={{ display: "inline-block", padding: "1px 6px", borderRadius: 3, fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".5px", background: s.bg, color: s.color }}>{src}</span>;
+    if (link) {
+      let domain = "";
+      try { domain = new URL(link).hostname.replace(/^www\./, ""); } catch { /* */ }
+      return (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          {badge}
+          <a href={link} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: C.muted, textDecoration: "none", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }} title={link}>
+            {domain}
+          </a>
+        </span>
+      );
     }
-    return list;
-  }, [searchQuery, filter]);
+    return badge;
+  };
+
+  const sevBadge = (sev: string) => {
+    const map: Record<string, { bg: string; color: string }> = {
+      CRITICAL: { bg: C.red, color: "#fff" },
+      HIGH:     { bg: C.orange, color: "#fff" },
+      MEDIUM:   { bg: C.yellow, color: "#000" },
+      LOW:      { bg: C.green, color: "#fff" },
+      UNKNOWN:  { bg: C.muted, color: "#fff" },
+    };
+    const s = map[sev] || map.UNKNOWN;
+    return <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 4, fontSize: 10, fontWeight: 700, letterSpacing: ".5px", background: s.bg, color: s.color }}>{sev}</span>;
+  };
+
+  /* ── input styles ─── */
+  const inputStyle: React.CSSProperties = {
+    padding: "4px 8px", borderRadius: 5, border: `1px solid ${C.border}`,
+    background: C.bg, color: C.text, fontSize: 12, fontFamily: C.mono,
+    width: 110, outline: "none",
+  };
+  const setBtnStyle: React.CSSProperties = {
+    display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 10px",
+    borderRadius: 4, border: `1px solid rgba(46,204,113,.4)`,
+    background: "rgba(46,204,113,.12)", color: C.green,
+    fontSize: 10, fontWeight: 700, cursor: "pointer", textTransform: "uppercase",
+    letterSpacing: ".3px", fontFamily: "inherit", whiteSpace: "nowrap",
+  };
+  const setLatestBtnStyle: React.CSSProperties = {
+    ...setBtnStyle,
+    border: `1px solid rgba(88,166,255,.4)`,
+    background: "rgba(88,166,255,.10)",
+    color: C.blue,
+  };
 
   return (
-    <div className="px-4 pt-3 pb-2 h-full flex flex-col">
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Radio className="w-5 h-5 text-cyber-primary flex-shrink-0" />
-          <h1 className="text-lg font-bold text-cyber-text">
-            Release <span className="text-cyber-primary">Radar</span>
-          </h1>
-          <span className="text-xs text-cyber-muted hidden sm:inline">
-            — {stats.total} security solutions monitored
-          </span>
+    <div style={{ background: C.bg, color: C.text, fontFamily: "'Segoe UI',Roboto,Helvetica,sans-serif", padding: "24px 20px", height: "100%", overflowY: "auto" }}>
+      {/* Pulse animation */}
+      <style>{`@keyframes rr-pulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
+
+      {/* ═══════════ HEADER — .header ═══════════ */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
+        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: C.text }}>
+          🛡️ Security <span style={{ color: C.accent }}>Monitor</span>
+        </h1>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 16px", borderRadius: 20, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".5px", background: "rgba(46,204,113,.12)", color: C.green, border: "1px solid rgba(46,204,113,.3)" }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: C.green, animation: "rr-pulse 2s infinite", display: "inline-block" }} />
+          Running
+        </span>
+      </div>
+
+      {/* ═══════════ ACTION BAR — .action-bar ═══════════ */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
+        <button onClick={exportCSV} style={{ ...S.actionBtn, borderColor: "rgba(46,204,113,.3)", color: C.green }}>
+          📊 Export to Excel
+        </button>
+        <button style={{ ...S.actionBtn, borderColor: "rgba(88,166,255,.3)", color: C.blue }}>
+          ➕ Add Solution
+        </button>
+        <button style={{ ...S.actionBtn, borderColor: "rgba(233,69,96,.3)", color: C.accent }}>
+          ✖ Delete Solution
+        </button>
+      </div>
+
+      {/* ═══════════ STAT CARDS — .stats ═══════════ */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 14, marginBottom: 28 }}>
+        <div style={S.statCard}>
+          <div style={S.label}>Alerts This Week</div>
+          <div style={S.value}>{stats.weekTotal}</div>
+          <div style={S.sub}>{stats.totalCves} CVE · {stats.totalPatches} Patch · {stats.totalVersionAlerts} Version</div>
+        </div>
+        <div style={S.statCard}>
+          <div style={S.label}>CVEs Found</div>
+          <div style={{ ...S.value, color: C.red }}>{stats.totalCves}</div>
+          <div style={S.sub}>This week</div>
+        </div>
+        <div style={S.statCard}>
+          <div style={S.label}>Last Check</div>
+          <div style={{ ...S.value, fontSize: 17 }}>{hasMounted ? lastCheck : "--:--:--"}</div>
+          <div style={S.sub}>Just now</div>
+        </div>
+        <div style={S.statCard}>
+          <div style={S.label}>Next Check</div>
+          <div style={{ ...S.value, fontSize: 17, color: C.blue }}>{hasMounted ? countdown : "60:00"}</div>
+          <div style={S.sub}>Auto-refresh</div>
+        </div>
+        <div style={S.statCard}>
+          <div style={S.label}>Products</div>
+          <div style={S.value}>{stats.enabled}</div>
+          <div style={S.sub}>Monitored</div>
         </div>
       </div>
 
-      {/* Stats strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-3">
-        <div className="bg-cyber-surface border border-cyber-border rounded-lg px-3 py-2">
-          <div className="text-[10px] uppercase tracking-wider text-cyber-muted">Products</div>
-          <div className="text-xl font-bold font-mono text-cyber-text">{stats.total}</div>
+      {/* ═══════════ CHARTS — .charts ═══════════ */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
+        <div style={S.chartCard}>
+          <h3 style={S.chartH3}>Alerts This Week by Type</h3>
+          <div style={S.barRow}>
+            <div style={S.barLabel}>CVE</div>
+            <div style={S.barTrack}><div style={barFillStyle(barWidth(stats.totalCves, maxType), C.red)}>{stats.totalCves}</div></div>
+          </div>
+          <div style={S.barRow}>
+            <div style={S.barLabel}>Patch</div>
+            <div style={S.barTrack}><div style={barFillStyle(barWidth(stats.totalPatches, maxType), C.orange)}>{stats.totalPatches}</div></div>
+          </div>
+          <div style={S.barRow}>
+            <div style={S.barLabel}>Version</div>
+            <div style={S.barTrack}><div style={barFillStyle(barWidth(stats.totalVersionAlerts, maxType), C.blue)}>{stats.totalVersionAlerts}</div></div>
+          </div>
         </div>
-        <div className="bg-cyber-surface border border-cyber-border rounded-lg px-3 py-2">
-          <div className="text-[10px] uppercase tracking-wider text-cyber-muted">Versioned</div>
-          <div className="text-xl font-bold font-mono text-cyber-secondary">{stats.withVersion}</div>
-        </div>
-        <div className="bg-cyber-surface border border-cyber-border rounded-lg px-3 py-2">
-          <div className="text-[10px] uppercase tracking-wider text-cyber-muted">Outdated</div>
-          <div className="text-xl font-bold font-mono text-cyber-warning">{stats.outdated}</div>
-        </div>
-        <div className="bg-cyber-surface border border-cyber-border rounded-lg px-3 py-2">
-          <div className="text-[10px] uppercase tracking-wider text-cyber-muted">CVEs</div>
-          <div className="text-xl font-bold font-mono text-cyber-accent">{stats.totalCves}</div>
-        </div>
-        <div className="bg-cyber-surface border border-cyber-border rounded-lg px-3 py-2">
-          <div className="text-[10px] uppercase tracking-wider text-cyber-muted">Patches</div>
-          <div className="text-xl font-bold font-mono text-cyber-warning">{stats.totalPatches}</div>
-        </div>
-      </div>
-
-      {/* Search + filter row */}
-      <div className="flex gap-2 mb-3">
-        <div className="flex-1 flex items-center bg-cyber-bg border border-cyber-border rounded-lg px-3 py-1.5 focus-within:border-cyber-primary transition-colors">
-          <span className="text-cyber-primary font-mono text-sm mr-2">$</span>
-          <Search className="w-4 h-4 text-cyber-muted mr-2 flex-shrink-0" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search products, vendors, categories..."
-            className="flex-1 bg-transparent outline-none font-mono text-sm text-cyber-text placeholder:text-cyber-muted/40"
-          />
-        </div>
-        <div className="flex items-center gap-1">
-          <Filter className="w-4 h-4 text-cyber-muted flex-shrink-0" />
-          {(["all", "outdated", "cve", "no-version"] as FilterMode[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-2.5 py-1.5 text-xs font-mono rounded-lg border transition-colors ${
-                filter === f
-                  ? "border-cyber-primary bg-cyber-primary/10 text-cyber-primary"
-                  : "border-cyber-border bg-cyber-surface text-cyber-muted hover:text-cyber-text"
-              }`}
-            >
-              {f === "all" ? "All" : f === "outdated" ? "Outdated" : f === "cve" ? "CVEs" : "No Ver"}
-            </button>
-          ))}
+        <div style={S.chartCard}>
+          <h3 style={S.chartH3}>Severity Distribution</h3>
+          <div style={S.barRow}>
+            <div style={S.barLabel}>Critical</div>
+            <div style={S.barTrack}><div style={barFillStyle(barWidth(stats.sev.CRITICAL, maxSev), C.red)}>{stats.sev.CRITICAL}</div></div>
+          </div>
+          <div style={S.barRow}>
+            <div style={S.barLabel}>High</div>
+            <div style={S.barTrack}><div style={barFillStyle(barWidth(stats.sev.HIGH, maxSev), C.orange)}>{stats.sev.HIGH}</div></div>
+          </div>
+          <div style={S.barRow}>
+            <div style={S.barLabel}>Medium</div>
+            <div style={S.barTrack}><div style={barFillStyle(barWidth(stats.sev.MEDIUM, maxSev), C.yellow)}>{stats.sev.MEDIUM}</div></div>
+          </div>
+          <div style={S.barRow}>
+            <div style={S.barLabel}>Low</div>
+            <div style={S.barTrack}><div style={barFillStyle(barWidth(stats.sev.LOW, maxSev), C.green)}>{stats.sev.LOW}</div></div>
+          </div>
         </div>
       </div>
 
-      {/* Product table */}
-      <div className="flex-1 min-h-0 overflow-auto rounded-lg border border-cyber-border">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 z-10">
-            <tr className="bg-cyber-surface text-[10px] uppercase tracking-wider text-cyber-muted">
-              <th className="text-left px-3 py-2.5 font-semibold">#</th>
-              <th className="text-left px-3 py-2.5 font-semibold">Product</th>
-              <th className="text-left px-3 py-2.5 font-semibold hidden lg:table-cell">Vendor</th>
-              <th className="text-left px-3 py-2.5 font-semibold hidden md:table-cell">Category</th>
-              <th className="text-left px-3 py-2.5 font-semibold">Current</th>
-              <th className="text-left px-3 py-2.5 font-semibold">Latest</th>
-              <th className="text-center px-3 py-2.5 font-semibold hidden sm:table-cell">Source</th>
-              <th className="text-center px-3 py-2.5 font-semibold">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((p, i) => {
-              const vs = versionStatus(p);
-              return (
-                <tr
-                  key={p.name}
-                  className="border-t border-cyber-border/50 hover:bg-cyber-primary/[0.03] transition-colors"
-                >
-                  {/* # */}
-                  <td className="px-3 py-2.5 text-cyber-muted font-mono text-xs">
-                    {i + 1}
-                  </td>
-
-                  {/* Product name */}
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <CircleDot
-                        className={`w-2.5 h-2.5 flex-shrink-0 ${
-                          p.cveCount > 0
-                            ? "text-cyber-accent"
-                            : vs === "outdated"
-                            ? "text-cyber-warning"
-                            : "text-cyber-primary"
-                        }`}
-                      />
-                      <span className="font-semibold text-cyber-text">{p.name}</span>
-                    </div>
-                  </td>
-
-                  {/* Vendor */}
-                  <td className="px-3 py-2.5 text-cyber-muted hidden lg:table-cell">
-                    {p.vendor}
-                  </td>
-
-                  {/* Category */}
-                  <td className="px-3 py-2.5 hidden md:table-cell">
-                    <span className="px-2 py-0.5 text-[11px] font-mono rounded bg-cyber-bg border border-cyber-border text-cyber-muted">
-                      {p.category}
-                    </span>
-                  </td>
-
-                  {/* Current version */}
-                  <td className="px-3 py-2.5">
-                    {p.currentVersion ? (
-                      <span className="font-mono text-xs px-2 py-0.5 rounded bg-cyber-bg border border-cyber-border text-cyber-text">
-                        {p.currentVersion}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-cyber-muted italic">—</span>
-                    )}
-                  </td>
-
-                  {/* Latest version */}
-                  <td className="px-3 py-2.5">
-                    {p.latestVersion ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="font-mono text-xs px-2 py-0.5 rounded bg-cyber-secondary/10 border border-cyber-secondary/20 text-cyber-secondary font-bold">
-                          {p.latestVersion}
-                        </span>
-                        {p.versionLink && (
-                          <a
-                            href={p.versionLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-cyber-muted hover:text-cyber-secondary transition-colors"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-cyber-muted italic">N/A</span>
-                    )}
-                  </td>
-
-                  {/* Source */}
-                  <td className="px-3 py-2.5 text-center hidden sm:table-cell">
-                    {p.versionSource ? (
-                      <span
-                        className={`px-1.5 py-0.5 text-[10px] font-bold uppercase rounded ${
-                          p.versionSource === "rss"
-                            ? "bg-purple-500/10 text-purple-400"
-                            : p.versionSource === "web"
-                            ? "bg-cyber-secondary/10 text-cyber-secondary"
-                            : "bg-cyber-warning/10 text-cyber-warning"
-                        }`}
-                      >
-                        {p.versionSource}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-cyber-muted">—</span>
-                    )}
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-3 py-2.5 text-center">
-                    {p.cveCount > 0 ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded bg-cyber-accent/10 text-cyber-accent">
-                        <ShieldAlert className="w-3 h-3" />
-                        {p.cveCount} CVE
-                      </span>
-                    ) : vs === "outdated" ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded bg-cyber-warning/10 text-cyber-warning">
-                        <ArrowUpCircle className="w-3 h-3" />
-                        Update
-                      </span>
-                    ) : vs === "current" ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded bg-cyber-primary/10 text-cyber-primary">
-                        <CheckCircle2 className="w-3 h-3" />
-                        OK
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded bg-cyber-bg text-cyber-muted">
-                        <AlertTriangle className="w-3 h-3" />
-                        N/A
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-
-            {filtered.length === 0 && (
+      {/* ═══════════ SECTION 1: SOLUTION VERSIONS — .section-card ═══════════ */}
+      <div style={S.sectionCard}>
+        <h3 style={S.sectionH3}>
+          <span style={{ fontSize: 18 }}>📦</span> Solution Versions
+          <span style={{ marginLeft: "auto", fontWeight: 400, textTransform: "none", fontSize: 12, color: "#586069" }}>{stats.enabled} products</span>
+        </h3>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
               <tr>
-                <td colSpan={8} className="py-12 text-center text-cyber-muted">
-                  <Package className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                  <p>No products match your search.</p>
-                </td>
+                <th style={{ ...S.th, width: 30 }}>#</th>
+                <th style={S.th}>Product</th>
+                <th style={S.th}>Vendor</th>
+                <th style={S.th}>Current Version</th>
+                <th style={S.th}>Latest Version</th>
+                <th style={S.th}>Source</th>
+                <th style={S.th}>Status</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {securityProducts.map((p, i) => {
+                const curVer = getCurrent(p);
+                const vs = versionStatus(curVer, p.latestVersion);
+                const hasLatest = !!(p.latestVersion && p.latestVersion !== "N/A");
+                const isEditing = editingRow === p.name;
+
+                // Status dot
+                const dotColor = !p.enabled ? C.muted : p.cveCount > 0 ? C.orange : C.green;
+
+                /* ── Current Version cell ── */
+                let curVerCell: React.ReactNode;
+
+                if (curVer) {
+                  // ── LOCKED STATE: version is set ──
+                  const badgeBg = vs === "match" || vs === "unknown"
+                    ? "rgba(46,204,113,.12)"
+                    : "rgba(231,76,60,.15)";
+                  const badgeCol = vs === "match" || vs === "unknown" ? C.green : C.red;
+                  curVerCell = (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <span style={{
+                        display: "inline-block", padding: "3px 10px", borderRadius: 5,
+                        fontSize: 12, fontWeight: 700, letterSpacing: ".3px",
+                        fontFamily: C.mono, background: badgeBg, color: badgeCol,
+                      }}>
+                        {curVer}
+                      </span>
+                      {vs === "match" && <span title="Up to date" style={{ fontSize: 14 }}>✅</span>}
+                      {vs === "outdated" && (
+                        <span title={`Update available: ${p.latestVersion}`} style={{ fontSize: 14 }}>⚠️</span>
+                      )}
+                    </span>
+                  );
+                } else if (isEditing) {
+                  // ── EDITING STATE: input field shown ──
+                  curVerCell = (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <input
+                        autoFocus
+                        style={inputStyle}
+                        placeholder="e.g. 10.4.0"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") commitVersion(p.name, editValue);
+                          if (e.key === "Escape") { setEditingRow(null); setEditValue(""); }
+                        }}
+                      />
+                      <button
+                        style={{
+                          ...setBtnStyle,
+                          opacity: editValue.trim() ? 1 : 0.4,
+                          cursor: editValue.trim() ? "pointer" : "default",
+                        }}
+                        disabled={!editValue.trim()}
+                        onClick={() => commitVersion(p.name, editValue)}
+                      >
+                        ↑ SET
+                      </button>
+                      {hasLatest && (
+                        <button
+                          style={setLatestBtnStyle}
+                          onClick={() => commitVersion(p.name, p.latestVersion)}
+                        >
+                          ↑ SET TO {p.latestVersion}
+                        </button>
+                      )}
+                      <button
+                        style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 14, padding: "2px 4px" }}
+                        title="Cancel"
+                        onClick={() => { setEditingRow(null); setEditValue(""); }}
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  );
+                } else {
+                  // ── EMPTY STATE: show "Set Version" button ──
+                  curVerCell = (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <button
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          padding: "4px 12px", borderRadius: 5,
+                          border: `1px dashed ${C.muted}`,
+                          background: "rgba(72,79,88,.08)", color: C.muted,
+                          fontSize: 11, fontWeight: 600, cursor: "pointer",
+                          fontFamily: "inherit", letterSpacing: ".3px",
+                          transition: "all .15s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = C.blue;
+                          e.currentTarget.style.color = C.blue;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = C.muted;
+                          e.currentTarget.style.color = C.muted;
+                        }}
+                        onClick={() => handleSetVersionClick(p.name)}
+                      >
+                        ✎ Set Version
+                      </button>
+                      {hasLatest && (
+                        <button
+                          style={setLatestBtnStyle}
+                          onClick={() => handleSetLatestClick(p.name, p.latestVersion)}
+                        >
+                          ↑ SET TO {p.latestVersion}
+                        </button>
+                      )}
+                    </span>
+                  );
+                }
+
+                /* ── Latest Version cell — color-coded based on comparison ── */
+                let latestVerCell: React.ReactNode;
+                if (!hasLatest) {
+                  latestVerCell = naBadge;
+                } else if (vs === "outdated") {
+                  // Highlight latest in orange/red to signal update needed
+                  latestVerCell = verBadge(p.latestVersion, p.versionLink, "rgba(230,126,34,.15)", C.orange);
+                } else {
+                  latestVerCell = verBadge(p.latestVersion, p.versionLink);
+                }
+
+                /* ── Status cell — includes version comparison result ── */
+                let statusCell: React.ReactNode;
+                if (!p.enabled) {
+                  statusCell = <span style={{ color: C.muted }}>Disabled</span>;
+                } else if (p.cveCount > 0) {
+                  statusCell = <span style={{ color: C.red }}>{p.cveCount} CVE{p.patchCount > 0 ? `, ${p.patchCount} Patch` : ""}</span>;
+                } else if (vs === "outdated") {
+                  statusCell = (
+                    <span style={{
+                      display: "inline-block", padding: "2px 8px", borderRadius: 4,
+                      fontSize: 10, fontWeight: 700, letterSpacing: ".5px",
+                      background: "rgba(230,126,34,.15)", color: C.orange,
+                    }}>
+                      UPDATE
+                    </span>
+                  );
+                } else if (vs === "match") {
+                  statusCell = <span style={{ color: C.green }}>Clean</span>;
+                } else {
+                  statusCell = <span style={{ color: C.green }}>Clean</span>;
+                }
+
+                return (
+                  <tr key={p.name} style={{ cursor: "default" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(88,166,255,.03)"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ""; }}>
+                    <td style={{ ...S.td, color: C.muted, fontSize: 11 }}>{i + 1}</td>
+                    <td style={S.td}>
+                      <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: dotColor, marginRight: 6 }} />
+                      <strong>{p.name}</strong>
+                    </td>
+                    <td style={{ ...S.td, color: C.muted }}>{p.vendor}</td>
+                    <td style={S.td}>{curVerCell}</td>
+                    <td style={S.td}>{latestVerCell}</td>
+                    <td style={S.td}>{srcBadge(p.versionSource, p.versionLink)}</td>
+                    <td style={S.td}>{statusCell}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ═══════════ SECTION 2: CVE / VULNERABILITIES & PATCHES ═══════════ */}
+      <div style={S.sectionCard}>
+        <h3 style={S.sectionH3}>
+          <span style={{ fontSize: 18 }}>🚨</span> CVE / Vulnerabilities &amp; Patches
+          <span style={{ marginLeft: "auto", fontWeight: 400, textTransform: "none", fontSize: 12, color: "#586069" }}>{cveAlerts.length} alert{cveAlerts.length !== 1 ? "s" : ""}</span>
+        </h3>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr>
+                <th style={S.th}>Type</th>
+                <th style={S.th}>Product</th>
+                <th style={S.th}>Title</th>
+                <th style={S.th}>Severity</th>
+                <th style={S.th}>Date</th>
+                <th style={S.th}>Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cveAlerts.length === 0 ? (
+                <tr><td colSpan={6} style={{ padding: 40, textAlign: "center", color: C.muted }}>No CVE or patch alerts yet. Your products are clean!</td></tr>
+              ) : (
+                cveAlerts.map((a) => (
+                  <tr key={a.id} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(88,166,255,.03)"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ""; }}>
+                    <td style={{ ...S.td, whiteSpace: "nowrap" }}>
+                      {a.type === "cve" ? "🚨 CVE / Vulnerability" : "🛡️ Critical Patch"}
+                    </td>
+                    <td style={{ ...S.td, fontWeight: 600 }}>{a.product}</td>
+                    <td style={{ ...S.td, maxWidth: 340 }}>{a.title}</td>
+                    <td style={S.td}>{sevBadge(a.severity)}</td>
+                    <td style={{ ...S.td, whiteSpace: "nowrap" }}>{a.date || "—"}</td>
+                    <td style={S.td}>
+                      {a.link ? (
+                        <a href={a.link} target="_blank" rel="noopener noreferrer" style={{ color: C.blue, textDecoration: "none" }}>↗ Details</a>
+                      ) : "—"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ═══════════ FOOTER — .footer ═══════════ */}
+      <div style={{ textAlign: "center", padding: "24px 0 12px", fontSize: 11, color: C.muted }}>
+        Security Monitor Dashboard &bull; Auto-refreshes every 30 seconds &bull; Reads from status.json
       </div>
     </div>
   );

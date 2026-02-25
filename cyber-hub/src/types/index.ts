@@ -44,3 +44,50 @@ export interface ForumPost {
   createdAt: string;
   tags: string[];
 }
+
+export interface AuthUser {
+  id: number;
+  email: string;
+  username: string;
+  role: "admin" | "user";
+  company: string;
+}
+
+// ── Community ──
+
+export interface CommunityPost {
+  id: number;
+  authorId: number;
+  authorName: string;
+  title: string;
+  content: string;
+  category: string;
+  upvotes: number;
+  downvotes: number;
+  views: number;
+  commentCount: number;
+  userVote: number; // -1, 0, or 1
+  createdAt: string;
+}
+
+export interface Comment {
+  id: number;
+  authorId: number;
+  authorName: string;
+  content: string;
+  createdAt: string;
+}
+
+// ── Moderated Articles ──
+
+export interface DbArticle {
+  id: number;
+  authorId: number;
+  authorName: string;
+  title: string;
+  description: string;
+  content: string;
+  tags: string[];
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+}

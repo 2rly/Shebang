@@ -254,3 +254,48 @@ body {
   color: revert;
   text-decoration: revert;
 }
+
+/* Ensure the Excalidraw library sidebar is never clipped or hidden */
+.excalidraw .library-menu-items-container,
+.excalidraw .layer-ui__library {
+  z-index: 10 !important;
+}
+
+/* Prevent the library panel from collapsing to zero height */
+.excalidraw .library-menu-items-container__items {
+  min-height: 60px;
+}
+
+/* Ensure Excalidraw sidebar (library panel) renders above the main canvas */
+.excalidraw .layer-ui__wrapper {
+  z-index: 2 !important;
+}
+
+/* Fix Excalidraw dialog/modal z-index so they float above the app sidebar */
+.excalidraw-modal-container,
+.excalidraw .Dialog,
+.excalidraw .dialog-overlay {
+  z-index: 9999 !important;
+}
+
+/* Undo Tailwind's table resets inside Excalidraw */
+.excalidraw-container .excalidraw table,
+.excalidraw-container .excalidraw tr,
+.excalidraw-container .excalidraw td,
+.excalidraw-container .excalidraw th {
+  border-style: revert;
+  border-width: revert;
+  border-color: revert;
+  padding: revert;
+}
+
+/* Undo Tailwind's label/fieldset resets */
+.excalidraw-container .excalidraw label,
+.excalidraw-container .excalidraw fieldset,
+.excalidraw-container .excalidraw legend {
+  padding: revert;
+  margin: revert;
+  border: revert;
+  color: revert;
+  font-size: revert;
+}
