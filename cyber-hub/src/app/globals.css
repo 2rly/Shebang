@@ -190,8 +190,10 @@ body {
 
 /* ============================================
    EXCALIDRAW CSS ISOLATION
-   Prevent Tailwind base resets from breaking
-   Excalidraw's own styles
+   Undo only Tailwind's preflight resets so
+   Excalidraw's own styles render correctly.
+   DO NOT use `all: revert` — it nukes
+   Excalidraw's flexbox, SVG icons, and UI.
    ============================================ */
 
 .excalidraw-container {
@@ -205,97 +207,49 @@ body {
   height: 100% !important;
 }
 
-/* Undo Tailwind's border/outline resets inside Excalidraw */
+/* Undo Tailwind preflight border/outline resets */
 .excalidraw-container .excalidraw button,
 .excalidraw-container .excalidraw input,
 .excalidraw-container .excalidraw select,
 .excalidraw-container .excalidraw textarea {
-  border-style: revert;
-  border-width: revert;
-  border-color: revert;
-  outline: revert;
-  padding: revert;
-  margin: revert;
-  font-family: revert;
-  font-size: revert;
-  line-height: revert;
-  color: revert;
-  background-color: revert;
+  border-style: initial;
+  border-width: initial;
+  border-color: initial;
 }
 
-/* Undo Tailwind's list-style reset */
-.excalidraw-container .excalidraw ul,
-.excalidraw-container .excalidraw ol {
-  list-style: revert;
-  padding: revert;
-  margin: revert;
-}
-
-/* Undo Tailwind's image reset */
+/* Undo Tailwind preflight img/svg display:block + max-width:100% */
 .excalidraw-container .excalidraw img,
 .excalidraw-container .excalidraw svg {
-  display: revert;
-  max-width: revert;
+  display: initial;
+  max-width: initial;
 }
 
-/* Undo Tailwind's heading reset */
+/* Undo Tailwind preflight heading/paragraph margin resets */
 .excalidraw-container .excalidraw h1,
 .excalidraw-container .excalidraw h2,
 .excalidraw-container .excalidraw h3,
 .excalidraw-container .excalidraw h4,
 .excalidraw-container .excalidraw p {
-  margin: revert;
-  font-size: revert;
-  font-weight: revert;
+  margin: initial;
 }
 
-/* Undo Tailwind's anchor reset */
+/* Undo Tailwind preflight list-style reset */
+.excalidraw-container .excalidraw ul,
+.excalidraw-container .excalidraw ol {
+  list-style: initial;
+  padding: initial;
+  margin: initial;
+}
+
+/* Undo Tailwind preflight anchor reset */
 .excalidraw-container .excalidraw a {
-  color: revert;
-  text-decoration: revert;
+  color: initial;
+  text-decoration: initial;
 }
 
-/* Ensure the Excalidraw library sidebar is never clipped or hidden */
-.excalidraw .library-menu-items-container,
-.excalidraw .layer-ui__library {
-  z-index: 10 !important;
-}
-
-/* Prevent the library panel from collapsing to zero height */
-.excalidraw .library-menu-items-container__items {
-  min-height: 60px;
-}
-
-/* Ensure Excalidraw sidebar (library panel) renders above the main canvas */
-.excalidraw .layer-ui__wrapper {
-  z-index: 2 !important;
-}
-
-/* Fix Excalidraw dialog/modal z-index so they float above the app sidebar */
+/* Fix Excalidraw dialog/modal z-index above app sidebar */
 .excalidraw-modal-container,
 .excalidraw .Dialog,
 .excalidraw .dialog-overlay {
   z-index: 9999 !important;
-}
-
-/* Undo Tailwind's table resets inside Excalidraw */
-.excalidraw-container .excalidraw table,
-.excalidraw-container .excalidraw tr,
-.excalidraw-container .excalidraw td,
-.excalidraw-container .excalidraw th {
-  border-style: revert;
-  border-width: revert;
-  border-color: revert;
-  padding: revert;
-}
-
-/* Undo Tailwind's label/fieldset resets */
-.excalidraw-container .excalidraw label,
-.excalidraw-container .excalidraw fieldset,
-.excalidraw-container .excalidraw legend {
-  padding: revert;
-  margin: revert;
-  border: revert;
-  color: revert;
-  font-size: revert;
 }

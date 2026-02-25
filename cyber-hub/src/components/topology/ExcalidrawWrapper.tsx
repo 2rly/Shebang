@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   Excalidraw,
   MainMenu,
   WelcomeScreen,
   useHandleLibrary,
 } from "@excalidraw/excalidraw";
-import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
 import { createLibraryItems } from "@/data/network-devices";
 
@@ -30,9 +29,7 @@ function mergeWithDefaults(persisted: any[]): any[] {
   const defaults = getDefaultLibraryItems();
   const persistedIds = new Set(persisted.map((item: any) => item.id));
   return [
-    // Defaults first (status:"published" → "Library" section)
     ...defaults.filter((d) => !persistedIds.has(d.id)),
-    // User items (status:"unpublished" → "Your library" / Personal Library)
     ...persisted,
   ];
 }
@@ -43,11 +40,15 @@ function loadSavedScene() {
     const saved = localStorage.getItem(SCENE_KEY);
     if (saved) {
       const data = JSON.parse(saved);
+      // Migrate old dark backgrounds to white
+      const bg = data.appState?.viewBackgroundColor;
+      const bgColor =
+        bg && bg !== "#0a0a0f" && bg !== "#12121a" ? bg : "#ffffff";
       return {
         elements: data.elements || [],
         appState: {
           ...(data.appState || {}),
-          viewBackgroundColor: "#0a0a0f",
+          viewBackgroundColor: bgColor,
         },
         files: data.files || undefined,
       };
@@ -56,15 +57,15 @@ function loadSavedScene() {
   return {
     elements: [],
     appState: {
-      viewBackgroundColor: "#0a0a0f",
+      viewBackgroundColor: "#ffffff",
       showWelcomeScreen: true,
     },
   };
 }
 
-/* ─── LibraryPersistenceAdapter for useHandleLibrary ─── */
+/* ─── LibraryPersistenceAdapter (v0.18.0 signature) ─── */
 const libraryAdapter = {
-  load() {
+  load(_metadata: { source: "load" | "save" }) {
     try {
       const raw = localStorage.getItem(LIBRARY_KEY);
       if (raw) {
@@ -74,7 +75,6 @@ const libraryAdapter = {
         }
       }
     } catch {}
-    // No saved data — return defaults only
     return { libraryItems: getDefaultLibraryItems() };
   },
   save(libraryData: { libraryItems: readonly any[] }) {
@@ -88,22 +88,17 @@ const libraryAdapter = {
 };
 
 export default function ExcalidrawWrapper() {
-  const [excalidrawAPI, setExcalidrawAPI] =
-    useState<ExcalidrawImperativeAPI | null>(null);
+  const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
   const [initialData] = useState(loadSavedScene);
   const autoSaveRef = useRef<ReturnType<typeof setTimeout>>();
 
-  /* ─── Library persistence via Excalidraw's own hook ───
-   *  This replaces all manual onLibraryChange / updateLibrary / initFiredRef
-   *  logic. The hook calls adapter.load() on mount and adapter.save() on
-   *  every library mutation, keeping the UI in sync automatically.
-   */
+  /* ─── Library persistence ─── */
   useHandleLibrary({
     excalidrawAPI,
     adapter: libraryAdapter,
   } as any);
 
-  /* ─── Auto-save scene to localStorage (debounced 2 s) ─── */
+  /* ─── Auto-save scene to localStorage (debounced 2s) ─── */
   const handleChange = useCallback(
     (elements: readonly any[], appState: any, files: any) => {
       if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
@@ -123,7 +118,6 @@ export default function ExcalidrawWrapper() {
               files: files || {},
             }),
           );
-          // Persist binary files separately for resilience
           if (files && Object.keys(files).length > 0) {
             localStorage.setItem(FILES_KEY, JSON.stringify(files));
           }
@@ -146,10 +140,10 @@ export default function ExcalidrawWrapper() {
       style={{ width: "100%", height: "100%" }}
     >
       <Excalidraw
-        excalidrawAPI={(api) => setExcalidrawAPI(api as ExcalidrawImperativeAPI)}
+        excalidrawAPI={(api: any) => setExcalidrawAPI(api)}
         initialData={initialData}
         onChange={handleChange}
-        theme="dark"
+        theme="light"
         name="shebang.az Topology"
         detectScroll={true}
         handleKeyboardGlobally={true}
@@ -177,19 +171,19 @@ export default function ExcalidrawWrapper() {
           <WelcomeScreen.Center>
             <WelcomeScreen.Center.Logo>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#a5d8ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#228be6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="1" y="1" width="22" height="22" rx="4" />
                   <line x1="6" y1="12" x2="18" y2="12" />
                   <line x1="12" y1="6" x2="12" y2="18" />
-                  <circle cx="6" cy="6" r="1.5" fill="#a5d8ff" />
-                  <circle cx="18" cy="6" r="1.5" fill="#a5d8ff" />
-                  <circle cx="6" cy="18" r="1.5" fill="#a5d8ff" />
-                  <circle cx="18" cy="18" r="1.5" fill="#a5d8ff" />
+                  <circle cx="6" cy="6" r="1.5" fill="#228be6" />
+                  <circle cx="18" cy="6" r="1.5" fill="#228be6" />
+                  <circle cx="6" cy="18" r="1.5" fill="#228be6" />
+                  <circle cx="18" cy="18" r="1.5" fill="#228be6" />
                 </svg>
                 <div style={{ textAlign: "center" }}>
                   <h1 style={{ fontSize: 28, fontWeight: "bold", fontFamily: "monospace", margin: 0, lineHeight: 1.2 }}>
-                    <span style={{ color: "#a5d8ff" }}>#!</span>
-                    <span style={{ color: "#fff" }}>shebang</span>
+                    <span style={{ color: "#228be6" }}>#!</span>
+                    <span style={{ color: "#1a1a2e" }}>shebang</span>
                     <span style={{ color: "#868e96" }}>.az</span>
                   </h1>
                   <p style={{ fontSize: 12, color: "#868e96", margin: "4px 0 0 0", fontFamily: "monospace" }}>
