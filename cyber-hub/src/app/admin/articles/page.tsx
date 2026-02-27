@@ -55,24 +55,8 @@ export default function AdminArticlesPage() {
     setActionLoading(null);
   };
 
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 text-cyber-primary animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-cyber-accent mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-cyber-text mb-2">Access Denied</h2>
-          <p className="text-cyber-muted">You need admin privileges to access this page.</p>
-        </div>
-      </div>
-    );
+  if (authLoading || !user || user.role !== "admin") {
+    return null; // Layout handles auth guard
   }
 
   const pending = articles.filter((a) => a.status === "pending");
@@ -80,12 +64,12 @@ export default function AdminArticlesPage() {
   const rejected = articles.filter((a) => a.status === "rejected");
 
   return (
-    <div className="p-6">
+    <div className="p-3 md:p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Shield className="w-7 h-7 text-cyber-accent" />
-          <h1 className="text-3xl font-bold text-cyber-text">
+          <h1 className="text-2xl md:text-3xl font-bold text-cyber-text">
             Article <span className="text-cyber-accent">Moderation</span>
           </h1>
         </div>
@@ -95,7 +79,7 @@ export default function AdminArticlesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="cyber-card p-4 text-center">
           <Clock className="w-5 h-5 text-cyber-warning mx-auto mb-2" />
           <p className="text-2xl font-bold text-cyber-warning">{pending.length}</p>

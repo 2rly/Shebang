@@ -529,7 +529,7 @@ export default function SecurityAuditPage() {
   };
 
   return (
-    <div className="p-6 h-full flex flex-col">
+    <div className="p-3 md:p-6 h-full flex flex-col">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-cyber-text flex items-center gap-3">
@@ -545,12 +545,12 @@ export default function SecurityAuditPage() {
         </p>
       </div>
 
-      <div className="flex gap-6 flex-1 min-h-0">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 flex-1 min-h-0">
         {/* Left: Code Input */}
         <div className="flex-1 flex flex-col min-h-0">
           {/* Controls */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
@@ -562,7 +562,7 @@ export default function SecurityAuditPage() {
                 ))}
               </select>
 
-              <div className="flex gap-1 ml-2">
+              <div className="flex flex-wrap gap-1 ml-2">
                 {Object.entries(EXAMPLES).map(([key, ex]) => (
                   <button
                     key={key}
@@ -615,7 +615,7 @@ Detects: SQL Injection, XSS, SSRF, Command Injection, Hardcoded Secrets, Path Tr
         </div>
 
         {/* Right: Results */}
-        <div className="w-[480px] flex-shrink-0 flex flex-col min-h-0">
+        <div className="w-full md:w-[480px] flex-shrink-0 flex flex-col min-h-0">
           {!result && !scanning && (
             <div className="flex-1 flex flex-col items-center justify-center text-center bg-cyber-surface border border-cyber-border rounded-lg p-8">
               <FileCode className="w-12 h-12 text-cyber-muted mb-4" />

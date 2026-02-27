@@ -137,12 +137,12 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-3 md:p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-cyber-text mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-cyber-text mb-2">
               <span className="text-cyber-accent">Community</span> Hub
             </h1>
             <p className="text-cyber-muted">
@@ -163,7 +163,7 @@ export default function CommunityPage() {
       </div>
 
       {/* Stats Bar */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
           { label: "Threads", value: String(posts.length), icon: MessageCircle },
           { label: "Members", value: user ? "Online" : "—", icon: Users },
@@ -233,7 +233,7 @@ export default function CommunityPage() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-4 gap-6">
+      <div className="grid lg:grid-cols-4 gap-4 md:gap-6">
         {/* Main Content */}
         <div className="lg:col-span-3 space-y-6">
           {/* Categories */}

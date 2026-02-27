@@ -75,9 +75,9 @@ const stats = [
 
 export default function HomePage() {
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-3 md:p-6 space-y-6 md:space-y-8">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyber-surface via-cyber-bg to-cyber-surface border border-cyber-border p-8">
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyber-surface via-cyber-bg to-cyber-surface border border-cyber-border p-4 md:p-8">
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-cyber-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyber-secondary/5 rounded-full blur-3xl" />
@@ -188,7 +188,7 @@ export default function HomePage() {
               <Link
                 key={feature.title}
                 href={feature.href}
-                className="cyber-card p-6 group"
+                className="cyber-card p-4 md:p-6 group"
               >
                 <div className="flex items-start gap-4">
                   <div
@@ -213,9 +213,9 @@ export default function HomePage() {
       </section>
 
       {/* Recent Alerts & Quick Actions */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
         {/* Recent Alerts */}
-        <div className="lg:col-span-2 cyber-card p-6">
+        <div className="lg:col-span-2 cyber-card p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-cyber-text flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-cyber-warning" />
@@ -255,7 +255,7 @@ export default function HomePage() {
         </div>
 
         {/* AI Assistant Promo */}
-        <div className="cyber-card p-6 bg-gradient-to-br from-cyber-surface to-cyber-primary/5">
+        <div className="cyber-card p-4 md:p-6 bg-gradient-to-br from-cyber-surface to-cyber-primary/5">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-cyber-primary/20 rounded-lg">
               <MessageSquare className="w-6 h-6 text-cyber-primary" />

@@ -139,7 +139,6 @@ export interface SecurityProduct {
   category: string;
   nvdKeyword: string;
   rssFeed: string;
-  currentVersion: string;
   latestVersion: string;
   versionSource: string;
   versionDate: string;
@@ -156,7 +155,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "DLP",
     nvdKeyword: "Forcepoint DLP",
     rssFeed: "https://www.forcepoint.com/blog/feed",
-    currentVersion: "10.3.0",
+
     latestVersion: "10.4.0",
     versionSource: "web",
     versionDate: "2026-02-18",
@@ -171,7 +170,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Database Security",
     nvdKeyword: "DataSunrise",
     rssFeed: "https://www.datasunrise.com/blog/feed/",
-    currentVersion: "",
+
     latestVersion: "11.3.12.17190",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -186,7 +185,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Endpoint",
     nvdKeyword: "Trellix",
     rssFeed: "https://www.trellix.com/en-us/about/newsroom/feed.rss",
-    currentVersion: "",
+
     latestVersion: "8.4.4",
     versionSource: "web",
     versionDate: "2026-02-18",
@@ -201,7 +200,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "XDR",
     nvdKeyword: "Cortex XDR",
     rssFeed: "https://unit42.paloaltonetworks.com/feed/",
-    currentVersion: "",
+
     latestVersion: "9.1",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -216,7 +215,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Email Security",
     nvdKeyword: "Cisco Email Security Appliance",
     rssFeed: "https://tools.cisco.com/security/center/psirtrss20.xml",
-    currentVersion: "",
+
     latestVersion: "16.0.4",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -231,7 +230,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SIEM",
     nvdKeyword: "IBM QRadar",
     rssFeed: "https://www.ibm.com/blogs/psirt/feed/",
-    currentVersion: "",
+
     latestVersion: "7.5.0 UP14",
     versionSource: "web",
     versionDate: "2026-02-18",
@@ -246,7 +245,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Audit",
     nvdKeyword: "ManageEngine ADAudit",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "8600",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -261,7 +260,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "PAM",
     nvdKeyword: "Fudo PAM",
     rssFeed: "https://fudosecurity.com/en/blog/feed/",
-    currentVersion: "",
+
     latestVersion: "5.6.4",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -276,7 +275,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Password Management",
     nvdKeyword: "Passwork",
     rssFeed: "https://passwork.pro/blog/feed/",
-    currentVersion: "",
+
     latestVersion: "7.5.1",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -291,7 +290,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / DAST",
     nvdKeyword: "Burp Suite",
     rssFeed: "https://portswigger.net/burp/releases/rss",
-    currentVersion: "",
+
     latestVersion: "2026.2.1",
     versionSource: "rss",
     versionDate: "2026-02-18",
@@ -306,7 +305,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Vulnerability Scanner",
     nvdKeyword: "Tenable Nessus",
     rssFeed: "https://www.tenable.com/blog/feed",
-    currentVersion: "",
+
     latestVersion: "42.6",
     versionSource: "rss",
     versionDate: "2026-02-18",
@@ -321,7 +320,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "WAF",
     nvdKeyword: "FortiWeb",
     rssFeed: "https://www.fortiguard.com/rss/ir.xml",
-    currentVersion: "",
+
     latestVersion: "9.8",
     versionSource: "rss",
     versionDate: "2026-02-18",
@@ -336,7 +335,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / DAST",
     nvdKeyword: "Acunetix",
     rssFeed: "https://www.acunetix.com/blog/feed/",
-    currentVersion: "",
+
     latestVersion: "25.12.9",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -351,7 +350,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / SAST",
     nvdKeyword: "Synopsys Coverity",
     rssFeed: "https://www.synopsys.com/blogs/software-security/feed/",
-    currentVersion: "",
+
     latestVersion: "2025.12.0",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -366,7 +365,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Database Tool",
     nvdKeyword: "Navicat",
     rssFeed: "https://www.navicat.com/en/company/aboutus/blog/rss_2.0.xml",
-    currentVersion: "",
+
     latestVersion: "17.3.9",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -381,7 +380,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Data Erasure",
     nvdKeyword: "PartedMagic",
     rssFeed: "https://partedmagic.com/feed/",
-    currentVersion: "",
+
     latestVersion: "2025.12.31",
     versionSource: "web",
     versionDate: "2026-02-18",
@@ -396,7 +395,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "File Transfer",
     nvdKeyword: "Titan SFTP",
     rssFeed: "https://www.southrivertech.com/blog/feed/",
-    currentVersion: "",
+
     latestVersion: "2.0.36.2943",
     versionSource: "web",
     versionDate: "2026-02-18",
@@ -411,7 +410,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Artifact Repository",
     nvdKeyword: "Sonatype Nexus",
     rssFeed: "https://blog.sonatype.com/feed",
-    currentVersion: "",
+
     latestVersion: "3.89.1",
     versionSource: "web",
     versionDate: "2026-02-18",
@@ -426,7 +425,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Phishing Simulation",
     nvdKeyword: "Beamsec",
     rssFeed: "https://beamsec.com/blog/feed/",
-    currentVersion: "",
+
     latestVersion: "7.0.3.4",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -441,7 +440,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "IAM / SSO",
     nvdKeyword: "Authentik",
     rssFeed: "https://github.com/goauthentik/authentik/releases.atom",
-    currentVersion: "",
+
     latestVersion: "2026.2.0-rc4",
     versionSource: "rss",
     versionDate: "2026-02-18",
@@ -456,7 +455,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "IAM / SSO",
     nvdKeyword: "Authentik",
     rssFeed: "https://github.com/goauthentik/authentik/releases.atom",
-    currentVersion: "",
+
     latestVersion: "2026.2.0-rc4",
     versionSource: "rss",
     versionDate: "2026-02-18",
@@ -471,7 +470,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "MFA",
     nvdKeyword: "DUO Authentication Proxy",
     rssFeed: "https://duo.com/blog/feed",
-    currentVersion: "",
+
     latestVersion: "6.6.0",
     versionSource: "web",
     versionDate: "2026-02-19",
@@ -486,7 +485,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Network",
     nvdKeyword: "HAG",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "N/A",
     versionSource: "web",
     versionDate: "2026-02-18",
@@ -505,7 +504,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Network",
     nvdKeyword: "Cisco Nexus Dashboard",
     rssFeed: "https://tools.cisco.com/security/center/psirtrss20.xml",
-    currentVersion: "",
+
     latestVersion: "3.2.2",
     versionSource: "web",
     versionDate: "",
@@ -520,7 +519,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SD-WAN",
     nvdKeyword: "Cisco SD-WAN",
     rssFeed: "https://tools.cisco.com/security/center/psirtrss20.xml",
-    currentVersion: "",
+
     latestVersion: "20.18",
     versionSource: "web",
     versionDate: "",
@@ -535,7 +534,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Cloud Security",
     nvdKeyword: "Cisco Umbrella",
     rssFeed: "https://tools.cisco.com/security/center/psirtrss20.xml",
-    currentVersion: "",
+
     latestVersion: "3.8.3",
     versionSource: "web",
     versionDate: "",
@@ -550,7 +549,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "VPN / Endpoint",
     nvdKeyword: "Cisco Secure Client",
     rssFeed: "https://tools.cisco.com/security/center/psirtrss20.xml",
-    currentVersion: "",
+
     latestVersion: "5.1.15.287",
     versionSource: "web",
     versionDate: "",
@@ -565,7 +564,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Network Monitoring",
     nvdKeyword: "ThousandEyes",
     rssFeed: "https://tools.cisco.com/security/center/psirtrss20.xml",
-    currentVersion: "",
+
     latestVersion: "2.31.0",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -580,7 +579,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Network Management",
     nvdKeyword: "Cisco DNA Center",
     rssFeed: "https://tools.cisco.com/security/center/psirtrss20.xml",
-    currentVersion: "",
+
     latestVersion: "3.1.6",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -595,7 +594,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SIEM",
     nvdKeyword: "FortiSIEM",
     rssFeed: "https://www.fortiguard.com/rss/ir.xml",
-    currentVersion: "",
+
     latestVersion: "7.5.0",
     versionSource: "web",
     versionDate: "",
@@ -610,7 +609,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SOAR",
     nvdKeyword: "FortiSOAR",
     rssFeed: "https://www.fortiguard.com/rss/ir.xml",
-    currentVersion: "",
+
     latestVersion: "7.6.5",
     versionSource: "web",
     versionDate: "",
@@ -625,7 +624,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "ADC",
     nvdKeyword: "FortiADC",
     rssFeed: "https://www.fortiguard.com/rss/ir.xml",
-    currentVersion: "",
+
     latestVersion: "8.0.2",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -640,7 +639,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Proxy",
     nvdKeyword: "FortiProxy",
     rssFeed: "https://www.fortiguard.com/rss/ir.xml",
-    currentVersion: "",
+
     latestVersion: "7.6.6",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -655,7 +654,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Browser Isolation",
     nvdKeyword: "FortiIsolator",
     rssFeed: "https://www.fortiguard.com/rss/ir.xml",
-    currentVersion: "",
+
     latestVersion: "3.0.1",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -670,7 +669,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "EDR",
     nvdKeyword: "FortiEDR",
     rssFeed: "https://www.fortiguard.com/rss/ir.xml",
-    currentVersion: "",
+
     latestVersion: "7.2.1",
     versionSource: "web",
     versionDate: "",
@@ -685,7 +684,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SASE",
     nvdKeyword: "Prisma Access",
     rssFeed: "https://unit42.paloaltonetworks.com/feed/",
-    currentVersion: "",
+
     latestVersion: "6.1",
     versionSource: "web",
     versionDate: "",
@@ -700,7 +699,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "VPN / Endpoint",
     nvdKeyword: "GlobalProtect",
     rssFeed: "https://unit42.paloaltonetworks.com/feed/",
-    currentVersion: "",
+
     latestVersion: "6.3.3",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -715,7 +714,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "ASM",
     nvdKeyword: "Cortex Xpanse",
     rssFeed: "https://unit42.paloaltonetworks.com/feed/",
-    currentVersion: "",
+
     latestVersion: "2.11",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -730,7 +729,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Network Management",
     nvdKeyword: "Palo Alto Panorama",
     rssFeed: "https://unit42.paloaltonetworks.com/feed/",
-    currentVersion: "",
+
     latestVersion: "11.2.9",
     versionSource: "web",
     versionDate: "",
@@ -745,7 +744,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Cloud Security",
     nvdKeyword: "Strata Cloud Manager",
     rssFeed: "https://unit42.paloaltonetworks.com/feed/",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -760,7 +759,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Network Security",
     nvdKeyword: "Check Point Quantum",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "R82",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -775,7 +774,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SASE",
     nvdKeyword: "Check Point Harmony",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -790,7 +789,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "CSPM",
     nvdKeyword: "Check Point CloudGuard",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -805,7 +804,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "ZTNA",
     nvdKeyword: "Perimeter 81",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -820,7 +819,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "ZTNA",
     nvdKeyword: "Zscaler Private Access",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -835,7 +834,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SWG",
     nvdKeyword: "Zscaler Internet Access",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -850,7 +849,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "DEM",
     nvdKeyword: "Zscaler ZDX",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -865,7 +864,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SD-WAN",
     nvdKeyword: "Cloudflare Magic WAN",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -880,7 +879,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "ZTNA",
     nvdKeyword: "Cloudflare Zero Trust",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -895,7 +894,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Edge Computing",
     nvdKeyword: "Cloudflare Workers",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-01-29",
@@ -910,7 +909,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Microsegmentation",
     nvdKeyword: "Akamai Guardicore",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -925,7 +924,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "WAF / API Security",
     nvdKeyword: "Akamai App API Protector",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -944,7 +943,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SIEM",
     nvdKeyword: "ManageEngine Log360",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "Build 13013",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -959,7 +958,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Log Management",
     nvdKeyword: "ManageEngine EventLog",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "Build 13013",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -974,7 +973,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "PAM",
     nvdKeyword: "ManageEngine PAM360",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "8.5",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -989,7 +988,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Password Management",
     nvdKeyword: "ManageEngine Password Manager Pro",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "13.2",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1004,7 +1003,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "UEM",
     nvdKeyword: "ManageEngine Endpoint Central",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "10",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1019,7 +1018,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Patch Management",
     nvdKeyword: "ManageEngine Patch Manager",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "11.1",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1034,7 +1033,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Vulnerability Scanner",
     nvdKeyword: "ManageEngine Vulnerability Manager",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "3.5",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1049,7 +1048,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AD Management",
     nvdKeyword: "ManageEngine ADManager",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "Build 8036",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1064,7 +1063,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "DLP",
     nvdKeyword: "ManageEngine DataSecurity",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "Build 6264",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1079,7 +1078,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Network Monitoring",
     nvdKeyword: "ManageEngine OpManager",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "12.8.635",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1094,7 +1093,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "M365 Management",
     nvdKeyword: "ManageEngine M365",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "Build 4814",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1109,7 +1108,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Backup / Recovery",
     nvdKeyword: "ManageEngine RecoveryManager",
     rssFeed: "https://blogs.manageengine.com/feed",
-    currentVersion: "",
+
     latestVersion: "Build 6312",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1128,7 +1127,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Password Management",
     nvdKeyword: "Passwork",
     rssFeed: "https://passwork.pro/blog/feed/",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1143,7 +1142,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "PAM",
     nvdKeyword: "CyberArk Privileged Access",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "14.2",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1158,7 +1157,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "IAM / SSO",
     nvdKeyword: "CyberArk Identity",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1173,7 +1172,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Endpoint Privilege",
     nvdKeyword: "CyberArk Endpoint Privilege",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "24.7",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1188,7 +1187,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Secrets Management",
     nvdKeyword: "HashiCorp Vault",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1203,7 +1202,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Service Mesh",
     nvdKeyword: "HashiCorp Consul",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "1.22.4",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1218,7 +1217,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "ZTNA",
     nvdKeyword: "HashiCorp Boundary",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1233,7 +1232,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "PAM",
     nvdKeyword: "BeyondTrust Password Safe",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "24.2",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1248,7 +1247,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "PAM",
     nvdKeyword: "BeyondTrust Privileged Remote Access",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1263,7 +1262,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "IAM / SSO",
     nvdKeyword: "Okta",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1278,7 +1277,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "CIAM",
     nvdKeyword: "Auth0",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1293,7 +1292,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "PAM",
     nvdKeyword: "Delinea Secret Server",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "11.9.x",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1308,7 +1307,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Endpoint Privilege",
     nvdKeyword: "Delinea Privilege Control",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1323,7 +1322,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Secrets Management",
     nvdKeyword: "Keeper Secrets Manager",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "7.1.0",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1338,7 +1337,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "PAM",
     nvdKeyword: "Keeper Connection Manager",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "7.1.0",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1357,7 +1356,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Email Security",
     nvdKeyword: "Proofpoint Email Protection",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "8.21",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1372,7 +1371,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Email Security",
     nvdKeyword: "Proofpoint TAP",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1387,7 +1386,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "CASB",
     nvdKeyword: "Proofpoint CASB",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1402,7 +1401,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SSE",
     nvdKeyword: "Forcepoint ONE",
     rssFeed: "https://www.forcepoint.com/blog/feed",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1417,7 +1416,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "NGFW",
     nvdKeyword: "Forcepoint NGFW",
     rssFeed: "https://www.forcepoint.com/blog/feed",
-    currentVersion: "",
+
     latestVersion: "7.0.3",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1432,7 +1431,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Email Security",
     nvdKeyword: "Mimecast",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1447,7 +1446,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Security Awareness",
     nvdKeyword: "Mimecast Awareness",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1462,7 +1461,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Email Security",
     nvdKeyword: "Barracuda Email Security",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "9.2.1",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1477,7 +1476,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "WAF",
     nvdKeyword: "Barracuda WAF",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "12.3",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1496,7 +1495,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Vulnerability Scanner",
     nvdKeyword: "Tenable",
     rssFeed: "https://www.tenable.com/blog/feed",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1511,7 +1510,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AD Security",
     nvdKeyword: "Tenable AD",
     rssFeed: "https://www.tenable.com/blog/feed",
-    currentVersion: "",
+
     latestVersion: "3.77",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1526,7 +1525,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Vulnerability Scanner",
     nvdKeyword: "Rapid7 InsightVM",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1541,7 +1540,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SIEM / XDR",
     nvdKeyword: "Rapid7 InsightIDR",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "4.22.9",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1556,7 +1555,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SOAR",
     nvdKeyword: "Rapid7 InsightConnect",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1571,7 +1570,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Vulnerability Scanner",
     nvdKeyword: "Qualys VMDR",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1586,7 +1585,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Patch Management",
     nvdKeyword: "Qualys Patch",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1601,7 +1600,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "EDR",
     nvdKeyword: "Qualys EDR",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1616,7 +1615,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Endpoint",
     nvdKeyword: "Trellix Endpoint Security",
     rssFeed: "https://www.trellix.com/en-us/about/newsroom/feed.rss",
-    currentVersion: "",
+
     latestVersion: "10.7.0.5",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1631,7 +1630,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "XDR",
     nvdKeyword: "Trellix XDR",
     rssFeed: "https://www.trellix.com/en-us/about/newsroom/feed.rss",
-    currentVersion: "",
+
     latestVersion: "6.6",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1646,7 +1645,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "NGAV",
     nvdKeyword: "CrowdStrike Falcon",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1661,7 +1660,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "EDR",
     nvdKeyword: "CrowdStrike Falcon Insight",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "7.18",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1676,7 +1675,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "CSPM",
     nvdKeyword: "CrowdStrike Falcon Horizon",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1691,7 +1690,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "XDR",
     nvdKeyword: "SentinelOne",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1706,7 +1705,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Network Discovery",
     nvdKeyword: "SentinelOne Ranger",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "24.1",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1721,7 +1720,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SIEM",
     nvdKeyword: "Splunk Enterprise Security",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1736,7 +1735,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SOAR",
     nvdKeyword: "Splunk SOAR",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "6.3.0",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1751,7 +1750,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SIEM",
     nvdKeyword: "LogRhythm Axon",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1766,7 +1765,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SIEM",
     nvdKeyword: "LogRhythm SIEM",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "7.23.0",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1781,7 +1780,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SIEM",
     nvdKeyword: "Wazuh",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "4.14.3",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1796,7 +1795,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SIEM",
     nvdKeyword: "Wazuh Manager",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "4.14.3",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1815,7 +1814,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / DAST",
     nvdKeyword: "Burp Suite Enterprise",
     rssFeed: "https://portswigger.net/burp/releases/rss",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1830,7 +1829,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / DAST",
     nvdKeyword: "Acunetix",
     rssFeed: "https://www.acunetix.com/blog/feed/",
-    currentVersion: "",
+
     latestVersion: "25.12.9",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1845,7 +1844,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / DAST",
     nvdKeyword: "Netsparker",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1860,7 +1859,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "SCA",
     nvdKeyword: "Black Duck",
     rssFeed: "https://www.synopsys.com/blogs/software-security/feed/",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1875,7 +1874,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Container Security",
     nvdKeyword: "Snyk Container",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "1.1302.1",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1890,7 +1889,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "IaC Security",
     nvdKeyword: "Snyk IaC",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1905,7 +1904,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Data Security",
     nvdKeyword: "Varonis",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -1920,7 +1919,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / DAST",
     nvdKeyword: "Veracode",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1935,7 +1934,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / SAST",
     nvdKeyword: "Veracode SAST",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1950,7 +1949,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / AST",
     nvdKeyword: "Checkmarx",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1965,7 +1964,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AppSec / SAST",
     nvdKeyword: "Checkmarx SAST",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1984,7 +1983,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "CNAPP",
     nvdKeyword: "Wiz CNAPP",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -1999,7 +1998,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Cloud Runtime",
     nvdKeyword: "Wiz Runtime",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -2014,7 +2013,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Data Protection",
     nvdKeyword: "Rubrik",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -2029,7 +2028,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Data Protection",
     nvdKeyword: "Veeam Backup",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "12.3",
     versionSource: "web",
     versionDate: "2026-02-22",
@@ -2044,7 +2043,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "AI Security",
     nvdKeyword: "Lakera Guard",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -2059,7 +2058,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Threat Intelligence",
     nvdKeyword: "GreyNoise",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "",
     versionSource: "web",
     versionDate: "",
@@ -2074,7 +2073,7 @@ export const securityProducts: SecurityProduct[] = [
     category: "Threat Intelligence",
     nvdKeyword: "Recorded Future",
     rssFeed: "",
-    currentVersion: "",
+
     latestVersion: "SaaS",
     versionSource: "web",
     versionDate: "2026-02-22",

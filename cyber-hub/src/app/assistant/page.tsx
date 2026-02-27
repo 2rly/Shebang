@@ -11,7 +11,6 @@ import {
   Loader2,
   Trash2,
   Radio,
-  MessageSquare,
   BookOpen,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -38,59 +37,63 @@ const suggestedPrompts = [
   },
   {
     icon: FileSearch,
-    title: "Malware",
-    prompt: "How do I analyze a suspicious binary safely?",
-    color: "text-cyan-400",
-  },
-  {
-    icon: MessageSquare,
-    title: "Trending",
-    prompt: "What's trending in the community right now?",
-    color: "text-purple-400",
-  },
-  {
-    icon: Radio,
-    title: "Radar",
-    prompt: "Show me the Release Radar vulnerability feed",
+    title: "Disk Error",
+    prompt: "I'm getting DrvVD_DISKFULL error, how do I fix it?",
     color: "text-amber-400",
   },
   {
+    icon: Terminal,
+    title: "GRUB",
+    prompt: "How to install GRUB bootloader step by step?",
+    color: "text-cyan-400",
+  },
+  {
+    icon: Radio,
+    title: "Versions",
+    prompt: "What is the latest version of Forcepoint DLP?",
+    color: "text-purple-400",
+  },
+  {
     icon: BookOpen,
-    title: "Articles",
-    prompt: "What articles have been recently published?",
+    title: "Kernel",
+    prompt: "How do I diagnose a kernel panic from dmesg output?",
     color: "text-blue-400",
   },
 ];
 
 const WELCOME_CONTENT = `\`\`\`
- ██████╗  █████╗ ███████╗██╗  ██╗
- ██╔══██╗██╔══██╗██╔════╝██║  ██║
- ██████╔╝███████║███████╗███████║
- ██╔══██╗██╔══██║╚════██║██╔══██║
- ██████╔╝██║  ██║███████║██║  ██║
- ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
- v2.0 — shebang.az CyberSec Engine
+ ╔═══════════════════════════════════════╗
+ ║  #! ASSISTANT — Senior CyberSec      ║
+ ║  shebang.az Security Consultant v3.0  ║
+ ╚═══════════════════════════════════════╝
 \`\`\`
 
-Hey there, operator. I'm **bash** — your resident cybersecurity engineer.
+I'm the **#! Assistant** — a Senior Cybersecurity Consultant at shebang.az.
 
-**Deep Integrations:**
-- 🔴 **Release Radar** — live CVE and patch intelligence
-- 💬 **Community** — trending threads and discussions
-- 📰 **Articles** — recently approved publications
-- 🔧 **Shell Anatomy** — I can break down any command you paste
-- 📦 **Binary Intel** — package and binary lookups
+**Technical Expertise:**
+- **Linux Internals** — kernel diagnostics, boot repair (GRUB), storage errors, systemd
+- **Network Security** — firewall engineering, IDS/IPS tuning, packet analysis
+- **Penetration Testing** — methodology, tools, authorized assessment guidance
+- **SIEM/EDR** — deployment, detection rules, log correlation
+- **Incident Response** — evidence preservation, forensics, containment playbooks
+- **Cloud Security** — AWS/Azure/GCP hardening, container security
 
-**My expertise:**
-- Linux hardening, shell scripting, and command wizardry
-- Network security, firewalls, IDS/IPS configuration
-- Incident response playbooks and digital forensics
-- SIEM/EDR tuning and log analysis
-- Malware analysis (I **analyze**, never **create**)
+**Platform Integrations:**
+- **Release Radar** — ask "What is the latest version of [product]?" for live data
+- **Documentation** — SIEM, EDR, Firewalls, Hardening, Security Tools, Cloud guides
+- **Shell Anatomy** — paste any command for interactive visual breakdown
+- **Binary Intel** — package lookups across every major distro
+- **Community** — trending discussions and knowledge sharing
+- **Articles** — recently published, admin-reviewed content
 
-Type a question, paste a command, or pick a prompt below.
+\`\`\`
+$ assistant --topics
+  kernel-diagnostics | boot-repair | disk-errors | grub
+  nmap | firewalls | passwords | siem | incident-response
+  cve-intel | version-lookup | malware-analysis | hardening
+\`\`\`
 
-*I don't bite... unless you're running \`chmod 777\` on production.*`;
+Ask a technical question, paste a command, or select a prompt below.`;
 
 // ── Markdown renderer with color coding ──
 
@@ -382,16 +385,16 @@ export default function AssistantPage() {
           </div>
           <div>
             <h1 className="font-mono text-sm font-bold flex items-center gap-2" style={{ color: "#e5e7eb" }}>
-              bash
+              #! Assistant
               <span
                 className="px-1.5 py-0.5 text-[9px] rounded-full uppercase tracking-widest font-bold"
                 style={{ background: "rgba(0, 255, 0, 0.1)", color: "#00FF00", border: "1px solid rgba(0, 255, 0, 0.2)" }}
               >
-                CyberSec v2.0
+                Expert v3.0
               </span>
             </h1>
             <p className="text-[10px] font-mono" style={{ color: "#4b5563" }}>
-              shebang.az — security engineering assistant
+              shebang.az — senior cybersecurity consultant
             </p>
           </div>
         </div>
@@ -570,7 +573,7 @@ export default function AssistantPage() {
             {user ? `session: ${user.username} • history saved` : "anonymous session • sign in to save history"}
           </p>
           <p className="text-[9px] font-mono" style={{ color: "#4b5563" }}>
-            bash v2.0 • rule-based + integrations
+#! assistant v3.0 • expert-level + integrations
           </p>
         </div>
       </div>

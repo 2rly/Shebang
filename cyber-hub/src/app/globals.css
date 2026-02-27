@@ -253,3 +253,55 @@ body {
 .excalidraw .dialog-overlay {
   z-index: 9999 !important;
 }
+
+/* ============================================
+   GLOBAL RESPONSIVE UTILITIES
+   Mobile-first fixes for terminal-style UI
+   ============================================ */
+
+/* Code blocks and pre elements: wrap or scroll on mobile */
+pre,
+code {
+  word-break: break-word;
+}
+
+pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Terminal containers should scroll horizontally, not break layout */
+.terminal-input,
+.font-mono {
+  max-width: 100%;
+}
+
+/* Tables inside cards: horizontal scroll wrapper */
+@media (max-width: 768px) {
+  /* Prevent any child from pushing the viewport wider */
+  main {
+    overflow-x: hidden;
+  }
+
+  /* Stack cyber-cards on small screens */
+  .cyber-card {
+    width: 100%;
+  }
+
+  /* Markdown content responsive images */
+  .markdown-content img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Ensure code blocks don't overflow on mobile */
+  .markdown-content pre {
+    max-width: calc(100vw - 48px);
+  }
+
+  /* Matrix grid background: smaller on mobile */
+  .matrix-grid {
+    background-size: 30px 30px;
+  }
+}

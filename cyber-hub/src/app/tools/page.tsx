@@ -74,7 +74,7 @@ export default function ToolsPage() {
   const ToolComponent = currentTool.component;
 
   return (
-    <div className="p-6 h-full flex flex-col">
+    <div className="p-3 md:p-6 h-full flex flex-col">
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-cyber-text flex items-center gap-3">

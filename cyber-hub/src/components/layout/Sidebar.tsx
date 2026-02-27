@@ -20,9 +20,13 @@ import {
   Radar,
   Radio,
   Gavel,
+  X,
+  LayoutDashboard,
+  Image,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useMobileSidebar } from "./MobileSidebarContext";
 
 const navItems = [
   { href: "/", icon: Shield, label: "Dashboard", shortLabel: "Home" },
@@ -46,23 +50,24 @@ const navItems = [
 ];
 
 const adminItems = [
+  { href: "/admin", icon: LayoutDashboard, label: "Dashboard", shortLabel: "Dash" },
+  { href: "/admin/content/articles", icon: BookOpen, label: "Articles", shortLabel: "Blog" },
+  { href: "/admin/content/cheatsheets", icon: ScrollText, label: "Cheat Sheets", shortLabel: "Cheats" },
+  { href: "/admin/content/docs", icon: FileText, label: "Docs", shortLabel: "Docs" },
+  { href: "/admin/media", icon: Image, label: "Media", shortLabel: "Media" },
   { href: "/admin/articles", icon: Gavel, label: "Moderation", shortLabel: "Mod" },
 ];
 
-export function Sidebar() {
+function SidebarContent({ collapsed, onCollapse }: { collapsed: boolean; onCollapse: () => void }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
+  const { close } = useMobileSidebar();
 
   return (
-    <aside
-      className={`${
-        collapsed ? "w-16" : "w-64"
-      } bg-cyber-surface border-r border-cyber-border flex flex-col transition-all duration-300 relative`}
-    >
+    <>
       {/* Logo */}
       <div className="h-16 flex items-center justify-center border-b border-cyber-border px-4">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3" onClick={close}>
           <div className="relative">
             <Terminal className="w-8 h-8 text-cyber-primary" />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyber-primary rounded-full animate-pulse" />
@@ -86,6 +91,7 @@ export function Sidebar() {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  onClick={close}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group
                     ${
                       isActive
@@ -129,6 +135,7 @@ export function Sidebar() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      onClick={close}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group
                         ${
                           isActive
@@ -187,10 +194,10 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* Collapse Toggle */}
+      {/* Desktop Collapse Toggle — hidden on mobile */}
       <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 w-6 h-6 bg-cyber-surface border border-cyber-border rounded-full flex items-center justify-center hover:border-cyber-primary hover:text-cyber-primary transition-colors"
+        onClick={onCollapse}
+        className="absolute -right-3 top-20 w-6 h-6 bg-cyber-surface border border-cyber-border rounded-full items-center justify-center hover:border-cyber-primary hover:text-cyber-primary transition-colors hidden md:flex"
       >
         {collapsed ? (
           <ChevronRight className="w-4 h-4" />
@@ -198,6 +205,54 @@ export function Sidebar() {
           <ChevronLeft className="w-4 h-4" />
         )}
       </button>
-    </aside>
+    </>
+  );
+}
+
+export function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const { isOpen, close } = useMobileSidebar();
+  const pathname = usePathname();
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    close();
+  }, [pathname, close]);
+
+  return (
+    <>
+      {/* ── Desktop Sidebar: hidden on mobile ── */}
+      <aside
+        className={`${
+          collapsed ? "w-16" : "w-64"
+        } bg-cyber-surface border-r border-cyber-border flex-col transition-all duration-300 relative hidden md:flex`}
+      >
+        <SidebarContent collapsed={collapsed} onCollapse={() => setCollapsed(!collapsed)} />
+      </aside>
+
+      {/* ── Mobile Sidebar: overlay drawer ── */}
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/60 z-40 transition-opacity duration-300 md:hidden ${
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={close}
+      />
+      {/* Drawer */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-72 bg-cyber-surface border-r border-cyber-border flex flex-col z-50 transition-transform duration-300 md:hidden ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Close button */}
+        <button
+          onClick={close}
+          className="absolute top-4 right-4 p-1 text-cyber-muted hover:text-cyber-accent transition-colors z-10"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <SidebarContent collapsed={false} onCollapse={() => {}} />
+      </aside>
+    </>
   );
 }

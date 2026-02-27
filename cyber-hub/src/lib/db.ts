@@ -83,6 +83,54 @@ function createDb(): Database.Database {
       content     TEXT    NOT NULL,
       created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS vendor_product_updates (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      vendor_user_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_name    TEXT    NOT NULL,
+      latest_version  TEXT    NOT NULL,
+      previous_versions TEXT NOT NULL DEFAULT '[]',
+      updated_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(product_name)
+    );
+
+    CREATE TABLE IF NOT EXISTS admin_cheatsheets (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      author_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title       TEXT    NOT NULL,
+      description TEXT    NOT NULL DEFAULT '',
+      icon        TEXT    NOT NULL DEFAULT 'Terminal',
+      color       TEXT    NOT NULL DEFAULT 'cyber-primary',
+      content     TEXT    NOT NULL DEFAULT '[]',
+      tags        TEXT    NOT NULL DEFAULT '[]',
+      status      TEXT    NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published')),
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+      updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS admin_docs (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      author_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title       TEXT    NOT NULL,
+      description TEXT    NOT NULL DEFAULT '',
+      category    TEXT    NOT NULL DEFAULT 'General',
+      content     TEXT    NOT NULL,
+      tags        TEXT    NOT NULL DEFAULT '[]',
+      status      TEXT    NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published')),
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+      updated_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS media_uploads (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      author_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      filename    TEXT    NOT NULL,
+      original_name TEXT  NOT NULL,
+      mime_type   TEXT    NOT NULL,
+      size_bytes  INTEGER NOT NULL DEFAULT 0,
+      alt_text    TEXT    NOT NULL DEFAULT '',
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   // Migration: add columns to existing users table if missing

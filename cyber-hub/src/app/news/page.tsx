@@ -8,12 +8,12 @@ export const metadata = {
 
 export default function NewsPage() {
   return (
-    <div className="p-6">
+    <div className="p-3 md:p-6">
       {/* Header Section */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-cyber-text mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-cyber-text mb-2">
               <span className="text-cyber-secondary">Security</span> News
             </h1>
             <p className="text-cyber-muted">
@@ -33,8 +33,8 @@ export default function NewsPage() {
         </div>
 
         {/* Info Bar */}
-        <div className="cyber-card p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="cyber-card p-3 md:p-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2 md:gap-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-cyber-primary rounded-full animate-pulse" />
               <span className="text-sm text-cyber-muted">Auto-refresh: 5min</span>

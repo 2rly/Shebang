@@ -22,5 +22,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/radar/:path*"],
+  matcher: ["/api/radar/:path*", "/api/admin/:path*"],
 };

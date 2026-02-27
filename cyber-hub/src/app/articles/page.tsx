@@ -90,10 +90,10 @@ export default function ArticlesPage() {
   const rest = filtered.slice(2);
 
   return (
-    <div className="p-6">
+    <div className="p-3 md:p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-cyber-text mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-cyber-text mb-2">
           <span className="text-cyber-warning">Engineering</span> Articles
         </h1>
         <p className="text-cyber-muted max-w-2xl">
@@ -222,9 +222,9 @@ export default function ArticlesPage() {
                 <TrendingUp className="w-5 h-5 text-cyber-primary" />
                 {activeTag ? `Tagged: ${activeTag}` : "Latest Articles"}
               </h2>
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-6">
                 {featured.map((article) => (
-                  <div key={article.id} className="cyber-card p-6 group">
+                  <div key={article.id} className="cyber-card p-4 md:p-6 group">
                     <div className="flex items-start justify-between mb-3">
                       <span className="px-2 py-1 text-xs font-mono bg-cyber-primary/20 text-cyber-primary rounded">
                         APPROVED
@@ -263,7 +263,7 @@ export default function ArticlesPage() {
             </section>
           )}
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-4 md:gap-8">
             {/* More Articles */}
             <div className="lg:col-span-2">
               {rest.length > 0 && (

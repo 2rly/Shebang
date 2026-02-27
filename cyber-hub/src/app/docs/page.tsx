@@ -132,7 +132,7 @@ export default function DocsPage() {
   });
 
   return (
-    <div className="p-6 h-full flex flex-col">
+    <div className="p-3 md:p-6 h-full flex flex-col">
       {/* Header */}
       <div className="mb-6">
         <div className="mb-4">
@@ -156,7 +156,7 @@ export default function DocsPage() {
       {/* Documentation Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Categories Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 mb-8">
           {filteredCategories.map((category) => {
             const Icon = category.icon;
             return (

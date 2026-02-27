@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { securityProducts, alertHistory } from "@/data/security-products";
-import { useAuth } from "@/components/auth/AuthProvider";
+import type { SecurityProduct } from "@/data/security-products";
+
 
 /* ── helpers — ported directly from dashboard.html <script> ─── */
 
@@ -11,90 +12,58 @@ function barWidth(count: number, max: number): string {
   return Math.max(8, (count / max) * 100) + "%";
 }
 
-/**
- * Normalise a version string for comparison.
- * Strips leading "v", trims whitespace, lowercases, and splits into
- * numeric / alphanumeric segments so "10.4.0" > "10.3.0" works correctly.
- */
-function normParts(v: string): (number | string)[] {
-  return v
-    .replace(/^v/i, "")
-    .trim()
-    .toLowerCase()
-    .split(/[.\-+_ ]+/)
-    .map((p) => (/^\d+$/.test(p) ? Number(p) : p));
-}
+/* ── types ─── */
 
-function versionsEqual(a: string, b: string): boolean {
-  return a.replace(/^v/i, "").trim().toLowerCase() === b.replace(/^v/i, "").trim().toLowerCase();
-}
-
-/**
- * Compare two version strings.
- * Returns -1 if a < b, 0 if equal, 1 if a > b.
- */
-function compareVersions(a: string, b: string): number {
-  if (versionsEqual(a, b)) return 0;
-  const pa = normParts(a);
-  const pb = normParts(b);
-  const len = Math.max(pa.length, pb.length);
-  for (let i = 0; i < len; i++) {
-    const sa = pa[i] ?? 0;
-    const sb = pb[i] ?? 0;
-    if (typeof sa === "number" && typeof sb === "number") {
-      if (sa < sb) return -1;
-      if (sa > sb) return 1;
-    } else {
-      const cmp = String(sa).localeCompare(String(sb));
-      if (cmp !== 0) return cmp;
-    }
-  }
-  return 0;
-}
-
-type VerStatus = "match" | "outdated" | "empty" | "unknown";
-
-function versionStatus(cur: string, latest: string): VerStatus {
-  if (!cur) return "empty";
-  if (!latest || latest === "N/A" || latest === "SaaS") return "unknown";
-  if (versionsEqual(cur, latest)) return "match";
-  return compareVersions(cur, latest) < 0 ? "outdated" : "match";
+interface VendorUpdate {
+  latestVersion: string;
+  previousVersions: string[];
+  updatedAt: string;
 }
 
 /* ── component ─── */
 
 export default function ReleaseRadarPage() {
-  const { user, setShowAuthModal } = useAuth();
   const [hasMounted, setHasMounted] = useState(false);
   const [countdown, setCountdown] = useState("60:00");
   const [lastCheck, setLastCheck] = useState("--:--:--");
+  const [vendorUpdates, setVendorUpdates] = useState<Record<string, VendorUpdate>>({});
+  const [userVersions, setUserVersions] = useState<Record<string, string>>({});
+  const [settingVersion, setSettingVersion] = useState<string | null>(null);
+  const [versionInput, setVersionInput] = useState("");
 
-  // Current-version map: product name → user-entered version string
-  const [savedVersions, setSavedVersions] = useState<Record<string, string>>({});
-  // Track which row is in "editing" mode (product name)
-  const [editingRow, setEditingRow] = useState<string | null>(null);
-  // Temp input value while editing
-  const [editValue, setEditValue] = useState("");
+  // Fetch vendor-updated versions from DB
+  const fetchVendorUpdates = useCallback(async () => {
+    try {
+      const res = await fetch("/api/radar/vendor-update");
+      if (res.ok) {
+        const data = await res.json();
+        setVendorUpdates(data.updates || {});
+      }
+    } catch {
+      // silently fail — static data fallback
+    }
+  }, []);
 
-  // Hydration-safe mount detection
+  // Fetch user's saved current versions
+  const fetchUserVersions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/radar/versions");
+      if (res.ok) {
+        const data = await res.json();
+        setUserVersions(data.versions || {});
+      }
+    } catch {
+      // silently fail
+    }
+  }, []);
+
+  // Hydration-safe mount detection + data fetch
   useEffect(() => {
     setHasMounted(true);
     setLastCheck(new Date().toLocaleTimeString());
-  }, []);
-
-  // Fetch versions from API when user logs in
-  useEffect(() => {
-    if (!user) {
-      setSavedVersions({});
-      return;
-    }
-    fetch("/api/radar/versions")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.versions) setSavedVersions(data.versions);
-      })
-      .catch(() => {});
-  }, [user]);
+    fetchVendorUpdates();
+    fetchUserVersions();
+  }, [fetchVendorUpdates, fetchUserVersions]);
 
   // Tick countdown every second like dashboard.html
   useEffect(() => {
@@ -108,47 +77,16 @@ export default function ReleaseRadarPage() {
     return () => clearInterval(id);
   }, []);
 
-  /** Commit a version for a product — optimistic UI + persist to API */
-  const commitVersion = useCallback((productName: string, version: string) => {
-    const v = version.trim();
-    if (!v) return;
-    setSavedVersions((prev) => ({ ...prev, [productName]: v }));
-    setEditingRow(null);
-    setEditValue("");
-    // Persist in background
-    fetch("/api/radar/versions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productName, currentVersion: v }),
-    }).catch(() => {});
-  }, []);
-
-  /** Handle "Set Version" click — gate behind auth */
-  const handleSetVersionClick = useCallback((productName: string) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-    setEditingRow(productName);
-    setEditValue("");
-  }, [user, setShowAuthModal]);
-
-  /** Handle "Set to Latest" click — gate behind auth */
-  const handleSetLatestClick = useCallback((productName: string, latestVersion: string) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-    commitVersion(productName, latestVersion);
-  }, [user, setShowAuthModal, commitVersion]);
-
-  /** Get effective current version: saved (API) > static data */
-  const getCurrent = useCallback(
-    (p: typeof securityProducts[number]): string => {
-      return savedVersions[p.name] || (user ? "" : p.currentVersion || "");
-    },
-    [savedVersions, user],
-  );
+  // Merge vendor DB versions into products and filter out rows with no latest version
+  const visibleProducts = useMemo(() => {
+    return securityProducts
+      .map((p): SecurityProduct & { _resolvedLatest: string } => {
+        const vendorVer = vendorUpdates[p.name]?.latestVersion || "";
+        const resolvedLatest = vendorVer || p.latestVersion || "";
+        return { ...p, latestVersion: resolvedLatest, _resolvedLatest: resolvedLatest };
+      })
+      .filter((p) => p._resolvedLatest && p._resolvedLatest !== "N/A");
+  }, [vendorUpdates]);
 
   const stats = useMemo(() => {
     const products = securityProducts;
@@ -168,16 +106,34 @@ export default function ReleaseRadarPage() {
   const maxType = Math.max(stats.totalCves, stats.totalPatches, stats.totalVersionAlerts, 1);
   const maxSev = Math.max(...Object.values(stats.sev), 1);
 
+  // Save user's current version for a product
+  const saveCurrentVersion = async (productName: string, version: string) => {
+    try {
+      const res = await fetch("/api/radar/versions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productName, currentVersion: version }),
+      });
+      if (res.ok) {
+        setUserVersions((prev) => ({ ...prev, [productName]: version }));
+      }
+    } catch {
+      // silently fail
+    }
+    setSettingVersion(null);
+    setVersionInput("");
+  };
+
   const exportCSV = () => {
     let csv = "\uFEFF";
     csv += "Security Monitor Export - " + new Date().toLocaleString() + "\n\n";
     csv += "SOLUTION VERSIONS\n";
     csv += "#,Product,Vendor,Current Version,Latest Version,Source,CVEs,Patches,Status\n";
-    securityProducts.forEach((p, i) => {
-      const cur = getCurrent(p) || "—";
-      const ver = p.latestVersion || "N/A";
+    visibleProducts.forEach((p, i) => {
+      const latest = p._resolvedLatest || "N/A";
+      const current = userVersions[p.name] || "";
       const st = !p.enabled ? "Disabled" : p.cveCount > 0 ? p.cveCount + " CVE" : "Clean";
-      csv += `${i + 1},"${p.name}","${p.vendor}","${cur}","${ver}",${(p.versionSource || "").toUpperCase()},${p.cveCount},${p.patchCount},${st}\n`;
+      csv += `${i + 1},"${p.name}","${p.vendor}","${current}","${latest}",${(p.versionSource || "").toUpperCase()},${p.cveCount},${p.patchCount},${st}\n`;
     });
     csv += "\n\nCVE / VULNERABILITY ALERTS\n";
     csv += "Type,Product,Title,Severity,Date,Link\n";
@@ -260,8 +216,6 @@ export default function ReleaseRadarPage() {
     return <span style={style}>{version}</span>;
   };
 
-  const naBadge = <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 5, fontSize: 12, fontWeight: 700, fontFamily: C.mono, background: "rgba(72,79,88,.15)", color: C.muted }}>N/A</span>;
-
   const srcBadge = (src: string, link?: string) => {
     const map: Record<string, { bg: string; color: string }> = {
       rss: { bg: "rgba(168,85,247,.12)", color: C.purple },
@@ -298,25 +252,20 @@ export default function ReleaseRadarPage() {
     return <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 4, fontSize: 10, fontWeight: 700, letterSpacing: ".5px", background: s.bg, color: s.color }}>{sev}</span>;
   };
 
-  /* ── input styles ─── */
-  const inputStyle: React.CSSProperties = {
-    padding: "4px 8px", borderRadius: 5, border: `1px solid ${C.border}`,
-    background: C.bg, color: C.text, fontSize: 12, fontFamily: C.mono,
-    width: 110, outline: "none",
-  };
-  const setBtnStyle: React.CSSProperties = {
-    display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 10px",
-    borderRadius: 4, border: `1px solid rgba(46,204,113,.4)`,
-    background: "rgba(46,204,113,.12)", color: C.green,
-    fontSize: 10, fontWeight: 700, cursor: "pointer", textTransform: "uppercase",
-    letterSpacing: ".3px", fontFamily: "inherit", whiteSpace: "nowrap",
-  };
-  const setLatestBtnStyle: React.CSSProperties = {
-    ...setBtnStyle,
-    border: `1px solid rgba(88,166,255,.4)`,
-    background: "rgba(88,166,255,.10)",
-    color: C.blue,
-  };
+  const setVersionBtn = (productName: string) => (
+    <button
+      onClick={() => { setSettingVersion(productName); setVersionInput(""); }}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 4,
+        padding: "3px 10px", borderRadius: 5, fontSize: 11, fontWeight: 600,
+        fontFamily: C.mono, cursor: "pointer", transition: "all .15s",
+        background: "rgba(88,166,255,.08)", color: C.blue,
+        border: `1px solid rgba(88,166,255,.25)`,
+      }}
+    >
+      Set Version
+    </button>
+  );
 
   return (
     <div style={{ background: C.bg, color: C.text, fontFamily: "'Segoe UI',Roboto,Helvetica,sans-serif", padding: "24px 20px", height: "100%", overflowY: "auto" }}>
@@ -371,8 +320,8 @@ export default function ReleaseRadarPage() {
         </div>
         <div style={S.statCard}>
           <div style={S.label}>Products</div>
-          <div style={S.value}>{stats.enabled}</div>
-          <div style={S.sub}>Monitored</div>
+          <div style={S.value}>{visibleProducts.length}</div>
+          <div style={S.sub}>With version data</div>
         </div>
       </div>
 
@@ -418,8 +367,41 @@ export default function ReleaseRadarPage() {
       <div style={S.sectionCard}>
         <h3 style={S.sectionH3}>
           <span style={{ fontSize: 18 }}>📦</span> Solution Versions
-          <span style={{ marginLeft: "auto", fontWeight: 400, textTransform: "none", fontSize: 12, color: "#586069" }}>{stats.enabled} products</span>
+          <span style={{ marginLeft: "auto", fontWeight: 400, textTransform: "none", fontSize: 12, color: "#586069" }}>{visibleProducts.length} products</span>
         </h3>
+
+        {/* Version input modal overlay */}
+        {settingVersion && (
+          <div style={{ padding: "12px 22px", background: "rgba(88,166,255,.06)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, color: C.text, fontWeight: 600 }}>Set Current Version for <span style={{ color: C.blue }}>{settingVersion}</span>:</span>
+            <input
+              type="text"
+              value={versionInput}
+              onChange={(e) => setVersionInput(e.target.value)}
+              placeholder="e.g. 10.3.0"
+              style={{
+                background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6,
+                padding: "6px 12px", fontSize: 12, color: C.text, fontFamily: C.mono,
+                outline: "none", width: 160,
+              }}
+              onKeyDown={(e) => { if (e.key === "Enter" && versionInput.trim()) saveCurrentVersion(settingVersion, versionInput.trim()); }}
+              autoFocus
+            />
+            <button
+              onClick={() => { if (versionInput.trim()) saveCurrentVersion(settingVersion, versionInput.trim()); }}
+              style={{ ...S.actionBtn, borderColor: "rgba(46,204,113,.3)", color: C.green, padding: "6px 14px" }}
+            >
+              Save
+            </button>
+            <button
+              onClick={() => { setSettingVersion(null); setVersionInput(""); }}
+              style={{ ...S.actionBtn, borderColor: "rgba(233,69,96,.3)", color: C.accent, padding: "6px 14px" }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
@@ -434,168 +416,52 @@ export default function ReleaseRadarPage() {
               </tr>
             </thead>
             <tbody>
-              {securityProducts.map((p, i) => {
-                const curVer = getCurrent(p);
-                const vs = versionStatus(curVer, p.latestVersion);
-                const hasLatest = !!(p.latestVersion && p.latestVersion !== "N/A");
-                const isEditing = editingRow === p.name;
+              {visibleProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ padding: 40, textAlign: "center", color: C.muted }}>
+                    No products with version data. Vendors must publish version updates first.
+                  </td>
+                </tr>
+              ) : (
+                visibleProducts.map((p, i) => {
+                  // Status dot
+                  const dotColor = !p.enabled ? C.muted : p.cveCount > 0 ? C.orange : C.green;
 
-                // Status dot
-                const dotColor = !p.enabled ? C.muted : p.cveCount > 0 ? C.orange : C.green;
+                  /* ── Current Version cell — only from DB ── */
+                  const savedVersion = userVersions[p.name];
+                  const currentVerCell = savedVersion
+                    ? verBadge(savedVersion, undefined, "rgba(46,204,113,.12)", C.green)
+                    : setVersionBtn(p.name);
 
-                /* ── Current Version cell ── */
-                let curVerCell: React.ReactNode;
+                  /* ── Latest Version cell ── */
+                  const latestVerCell = verBadge(p._resolvedLatest, p.versionLink);
 
-                if (curVer) {
-                  // ── LOCKED STATE: version is set ──
-                  const badgeBg = vs === "match" || vs === "unknown"
-                    ? "rgba(46,204,113,.12)"
-                    : "rgba(231,76,60,.15)";
-                  const badgeCol = vs === "match" || vs === "unknown" ? C.green : C.red;
-                  curVerCell = (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                      <span style={{
-                        display: "inline-block", padding: "3px 10px", borderRadius: 5,
-                        fontSize: 12, fontWeight: 700, letterSpacing: ".3px",
-                        fontFamily: C.mono, background: badgeBg, color: badgeCol,
-                      }}>
-                        {curVer}
-                      </span>
-                      {vs === "match" && <span title="Up to date" style={{ fontSize: 14 }}>✅</span>}
-                      {vs === "outdated" && (
-                        <span title={`Update available: ${p.latestVersion}`} style={{ fontSize: 14 }}>⚠️</span>
-                      )}
-                    </span>
+                  /* ── Status cell ── */
+                  let statusCell: React.ReactNode;
+                  if (!p.enabled) {
+                    statusCell = <span style={{ color: C.muted }}>Disabled</span>;
+                  } else if (p.cveCount > 0) {
+                    statusCell = <span style={{ color: C.red }}>{p.cveCount} CVE{p.patchCount > 0 ? `, ${p.patchCount} Patch` : ""}</span>;
+                  } else {
+                    statusCell = <span style={{ color: C.green }}>Clean</span>;
+                  }
+
+                  return (
+                    <tr key={p.name} style={{ cursor: "default" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(88,166,255,.03)"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ""; }}>
+                      <td style={{ ...S.td, color: C.muted, fontSize: 11 }}>{i + 1}</td>
+                      <td style={S.td}>
+                        <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: dotColor, marginRight: 6 }} />
+                        <strong>{p.name}</strong>
+                      </td>
+                      <td style={{ ...S.td, color: C.muted }}>{p.vendor}</td>
+                      <td style={S.td}>{currentVerCell}</td>
+                      <td style={S.td}>{latestVerCell}</td>
+                      <td style={S.td}>{srcBadge(p.versionSource, p.versionLink)}</td>
+                      <td style={S.td}>{statusCell}</td>
+                    </tr>
                   );
-                } else if (isEditing) {
-                  // ── EDITING STATE: input field shown ──
-                  curVerCell = (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                      <input
-                        autoFocus
-                        style={inputStyle}
-                        placeholder="e.g. 10.4.0"
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") commitVersion(p.name, editValue);
-                          if (e.key === "Escape") { setEditingRow(null); setEditValue(""); }
-                        }}
-                      />
-                      <button
-                        style={{
-                          ...setBtnStyle,
-                          opacity: editValue.trim() ? 1 : 0.4,
-                          cursor: editValue.trim() ? "pointer" : "default",
-                        }}
-                        disabled={!editValue.trim()}
-                        onClick={() => commitVersion(p.name, editValue)}
-                      >
-                        ↑ SET
-                      </button>
-                      {hasLatest && (
-                        <button
-                          style={setLatestBtnStyle}
-                          onClick={() => commitVersion(p.name, p.latestVersion)}
-                        >
-                          ↑ SET TO {p.latestVersion}
-                        </button>
-                      )}
-                      <button
-                        style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 14, padding: "2px 4px" }}
-                        title="Cancel"
-                        onClick={() => { setEditingRow(null); setEditValue(""); }}
-                      >
-                        ✕
-                      </button>
-                    </span>
-                  );
-                } else {
-                  // ── EMPTY STATE: show "Set Version" button ──
-                  curVerCell = (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                      <button
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 4,
-                          padding: "4px 12px", borderRadius: 5,
-                          border: `1px dashed ${C.muted}`,
-                          background: "rgba(72,79,88,.08)", color: C.muted,
-                          fontSize: 11, fontWeight: 600, cursor: "pointer",
-                          fontFamily: "inherit", letterSpacing: ".3px",
-                          transition: "all .15s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = C.blue;
-                          e.currentTarget.style.color = C.blue;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = C.muted;
-                          e.currentTarget.style.color = C.muted;
-                        }}
-                        onClick={() => handleSetVersionClick(p.name)}
-                      >
-                        ✎ Set Version
-                      </button>
-                      {hasLatest && (
-                        <button
-                          style={setLatestBtnStyle}
-                          onClick={() => handleSetLatestClick(p.name, p.latestVersion)}
-                        >
-                          ↑ SET TO {p.latestVersion}
-                        </button>
-                      )}
-                    </span>
-                  );
-                }
-
-                /* ── Latest Version cell — color-coded based on comparison ── */
-                let latestVerCell: React.ReactNode;
-                if (!hasLatest) {
-                  latestVerCell = naBadge;
-                } else if (vs === "outdated") {
-                  // Highlight latest in orange/red to signal update needed
-                  latestVerCell = verBadge(p.latestVersion, p.versionLink, "rgba(230,126,34,.15)", C.orange);
-                } else {
-                  latestVerCell = verBadge(p.latestVersion, p.versionLink);
-                }
-
-                /* ── Status cell — includes version comparison result ── */
-                let statusCell: React.ReactNode;
-                if (!p.enabled) {
-                  statusCell = <span style={{ color: C.muted }}>Disabled</span>;
-                } else if (p.cveCount > 0) {
-                  statusCell = <span style={{ color: C.red }}>{p.cveCount} CVE{p.patchCount > 0 ? `, ${p.patchCount} Patch` : ""}</span>;
-                } else if (vs === "outdated") {
-                  statusCell = (
-                    <span style={{
-                      display: "inline-block", padding: "2px 8px", borderRadius: 4,
-                      fontSize: 10, fontWeight: 700, letterSpacing: ".5px",
-                      background: "rgba(230,126,34,.15)", color: C.orange,
-                    }}>
-                      UPDATE
-                    </span>
-                  );
-                } else if (vs === "match") {
-                  statusCell = <span style={{ color: C.green }}>Clean</span>;
-                } else {
-                  statusCell = <span style={{ color: C.green }}>Clean</span>;
-                }
-
-                return (
-                  <tr key={p.name} style={{ cursor: "default" }} onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(88,166,255,.03)"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ""; }}>
-                    <td style={{ ...S.td, color: C.muted, fontSize: 11 }}>{i + 1}</td>
-                    <td style={S.td}>
-                      <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: dotColor, marginRight: 6 }} />
-                      <strong>{p.name}</strong>
-                    </td>
-                    <td style={{ ...S.td, color: C.muted }}>{p.vendor}</td>
-                    <td style={S.td}>{curVerCell}</td>
-                    <td style={S.td}>{latestVerCell}</td>
-                    <td style={S.td}>{srcBadge(p.versionSource, p.versionLink)}</td>
-                    <td style={S.td}>{statusCell}</td>
-                  </tr>
-                );
-              })}
+                })
+              )}
             </tbody>
           </table>
         </div>
