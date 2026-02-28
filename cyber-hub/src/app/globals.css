@@ -41,6 +41,8 @@ body {
   background-color: var(--cyber-bg);
   color: var(--cyber-text);
   font-family: "Inter", system-ui, sans-serif;
+  min-width: 1280px;
+  overflow-x: auto;
 }
 
 .font-mono {
@@ -277,31 +279,4 @@ pre {
   max-width: 100%;
 }
 
-/* Tables inside cards: horizontal scroll wrapper */
-@media (max-width: 768px) {
-  /* Prevent any child from pushing the viewport wider */
-  main {
-    overflow-x: hidden;
-  }
-
-  /* Stack cyber-cards on small screens */
-  .cyber-card {
-    width: 100%;
-  }
-
-  /* Markdown content responsive images */
-  .markdown-content img {
-    max-width: 100%;
-    height: auto;
-  }
-
-  /* Ensure code blocks don't overflow on mobile */
-  .markdown-content pre {
-    max-width: calc(100vw - 48px);
-  }
-
-  /* Matrix grid background: smaller on mobile */
-  .matrix-grid {
-    background-size: 30px 30px;
-  }
-}
+/* Mobile media query removed — desktop-only layout enforced via viewport meta width=1280 */

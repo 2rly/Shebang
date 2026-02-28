@@ -5,7 +5,6 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { AuthModal } from "@/components/auth/AuthModal";
-import { MobileSidebarProvider } from "@/components/layout/MobileSidebarContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -40,22 +39,20 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="viewport" content="width=1280" />
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-cyber-bg text-cyber-text antialiased`}>
         <AuthProvider>
-          <MobileSidebarProvider>
-            <div className="flex h-[100dvh] overflow-hidden">
-              <Sidebar />
-              <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-                <Header />
-                <main className="flex-1 overflow-y-auto matrix-grid">
-                  {children}
-                </main>
-              </div>
+          <div className="flex h-[100dvh] overflow-hidden min-w-[1280px]">
+            <Sidebar />
+            <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+              <Header />
+              <main className="flex-1 overflow-y-auto matrix-grid">
+                {children}
+              </main>
             </div>
-            <AuthModal />
-          </MobileSidebarProvider>
+          </div>
+          <AuthModal />
         </AuthProvider>
       </body>
     </html>

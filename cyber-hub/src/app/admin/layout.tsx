@@ -49,16 +49,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="h-full flex flex-col md:flex-row">
+    <div className="h-full flex flex-row">
       {/* Admin Sub-Navigation */}
-      <nav className="w-full md:w-56 bg-cyber-surface border-b md:border-b-0 md:border-r border-cyber-border flex-shrink-0 overflow-x-auto md:overflow-x-visible">
-        <div className="p-3 md:p-4 border-b border-cyber-border hidden md:block">
+      <nav className="w-56 bg-cyber-surface border-r border-cyber-border flex-shrink-0">
+        <div className="p-4 border-b border-cyber-border">
           <h2 className="text-xs font-mono uppercase tracking-wider text-cyber-accent flex items-center gap-2">
             <LayoutDashboard className="w-4 h-4" />
             Admin Panel
           </h2>
         </div>
-        <div className="flex md:flex-col gap-1 p-2 md:p-3">
+        <div className="flex flex-col gap-1 p-3">
           {adminNav.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -73,9 +73,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   }`}
               >
                 <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-cyber-accent" : ""}`} />
-                <span className="hidden md:inline">{item.label}</span>
-                <span className="md:hidden text-xs">{item.label}</span>
-                {isActive && <ChevronRight className="w-3 h-3 ml-auto hidden md:block" />}
+                <span>{item.label}</span>
+                {isActive && <ChevronRight className="w-3 h-3 ml-auto" />}
               </Link>
             );
           })}
