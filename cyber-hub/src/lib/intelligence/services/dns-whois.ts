@@ -3,7 +3,7 @@ import type { DNSWhoisResult } from "@/types/intelligence";
 import type { ServiceResponse } from "../types";
 import { checkRateLimit } from "../rate-limiter";
 
-const resolver = new dns.promises.Resolver();
+const resolver = new dns.promises.Resolver({ timeout: 5000, tries: 1 });
 resolver.setServers(["8.8.8.8", "1.1.1.1"]);
 
 async function resolveSafe<T>(

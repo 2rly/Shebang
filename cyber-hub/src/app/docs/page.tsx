@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FileText,
   Terminal,
@@ -14,106 +14,52 @@ import {
   Lock,
   Eye,
   Search,
+  Loader2,
+  Calendar,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { TerminalSearchMini } from "@/components/ui/TerminalSearch";
 
-const docCategories = [
-  {
-    id: "siem",
-    title: "SIEM Deployment",
-    description: "Security Information and Event Management setup guides",
-    icon: Eye,
-    headerBg: "bg-cyber-primary/5",
-    iconBg: "bg-cyber-primary/20",
-    iconText: "text-cyber-primary",
-    docs: [
-      { title: "Splunk Enterprise Setup", slug: "splunk-setup" },
-      { title: "ELK Stack Configuration", slug: "elk-config" },
-      { title: "Wazuh Installation Guide", slug: "wazuh-install" },
-      { title: "QRadar Quick Start", slug: "qradar-start" },
-    ],
-  },
-  {
-    id: "edr",
-    title: "EDR Solutions",
-    description: "Endpoint Detection and Response implementation",
-    icon: Shield,
-    headerBg: "bg-cyber-secondary/5",
-    iconBg: "bg-cyber-secondary/20",
-    iconText: "text-cyber-secondary",
-    docs: [
-      { title: "CrowdStrike Falcon Deploy", slug: "crowdstrike-deploy" },
-      { title: "Carbon Black Setup", slug: "carbonblack-setup" },
-      { title: "Microsoft Defender ATP", slug: "defender-atp" },
-      { title: "SentinelOne Configuration", slug: "sentinelone-config" },
-    ],
-  },
-  {
-    id: "firewalls",
-    title: "Firewalls & Network Security",
-    description: "Network perimeter defense configurations",
-    icon: Network,
-    headerBg: "bg-cyber-warning/5",
-    iconBg: "bg-cyber-warning/20",
-    iconText: "text-cyber-warning",
-    docs: [
-      { title: "pfSense Complete Guide", slug: "pfsense-guide" },
-      { title: "Palo Alto Basics", slug: "paloalto-basics" },
-      { title: "Fortinet FortiGate Setup", slug: "fortigate-setup" },
-      { title: "Suricata IDS/IPS", slug: "suricata-ids" },
-    ],
-  },
-  {
-    id: "hardening",
-    title: "System Hardening",
-    description: "OS and application security hardening guides",
-    icon: Lock,
-    headerBg: "bg-cyber-accent/5",
-    iconBg: "bg-cyber-accent/20",
-    iconText: "text-cyber-accent",
-    docs: [
-      { title: "Linux Server Hardening", slug: "linux-hardening" },
-      { title: "Windows Security Baseline", slug: "windows-baseline" },
-      { title: "Docker Security Best Practices", slug: "docker-security" },
-      { title: "Kubernetes Security", slug: "k8s-security" },
-    ],
-  },
-  {
-    id: "tools",
-    title: "Security Tools",
-    description: "Penetration testing and security assessment tools",
-    icon: Terminal,
-    headerBg: "bg-cyber-primary/5",
-    iconBg: "bg-cyber-primary/20",
-    iconText: "text-cyber-primary",
-    docs: [
-      { title: "Nmap Cheatsheet", slug: "nmap-cheatsheet" },
-      { title: "Metasploit Framework", slug: "metasploit-guide" },
-      { title: "Burp Suite Essentials", slug: "burp-suite" },
-      { title: "Wireshark Analysis", slug: "wireshark-analysis" },
-    ],
-  },
-  {
-    id: "cloud",
-    title: "Cloud Security",
-    description: "AWS, Azure, and GCP security configurations",
-    icon: Server,
-    headerBg: "bg-cyber-secondary/5",
-    iconBg: "bg-cyber-secondary/20",
-    iconText: "text-cyber-secondary",
-    docs: [
-      { title: "AWS Security Best Practices", slug: "aws-security" },
-      { title: "Azure Security Center", slug: "azure-security" },
-      { title: "GCP Security Command Center", slug: "gcp-security" },
-      { title: "Multi-Cloud Security", slug: "multicloud-security" },
-    ],
-  },
-];
+interface PublishedDoc {
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  category: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  authorName: string;
+}
+
+const categoryMeta: Record<string, { icon: typeof FileText; color: string; bgColor: string; headerBg: string }> = {
+  "SIEM Deployment": { icon: Eye, color: "text-cyber-primary", bgColor: "bg-cyber-primary/20", headerBg: "bg-cyber-primary/5" },
+  "EDR Solutions": { icon: Shield, color: "text-cyber-secondary", bgColor: "bg-cyber-secondary/20", headerBg: "bg-cyber-secondary/5" },
+  "Firewalls & Network Security": { icon: Network, color: "text-cyber-warning", bgColor: "bg-cyber-warning/20", headerBg: "bg-cyber-warning/5" },
+  "System Hardening": { icon: Lock, color: "text-cyber-accent", bgColor: "bg-cyber-accent/20", headerBg: "bg-cyber-accent/5" },
+  "Security Tools": { icon: Terminal, color: "text-cyber-primary", bgColor: "bg-cyber-primary/20", headerBg: "bg-cyber-primary/5" },
+  "Cloud Security": { icon: Server, color: "text-cyber-secondary", bgColor: "bg-cyber-secondary/20", headerBg: "bg-cyber-secondary/5" },
+  "Troubleshooting": { icon: Terminal, color: "text-cyber-warning", bgColor: "bg-cyber-warning/20", headerBg: "bg-cyber-warning/5" },
+  "VirtualBox & VMs": { icon: Server, color: "text-cyber-accent", bgColor: "bg-cyber-accent/20", headerBg: "bg-cyber-accent/5" },
+  "General": { icon: FileText, color: "text-cyber-muted", bgColor: "bg-cyber-border/50", headerBg: "bg-cyber-border/10" },
+};
+
+const defaultMeta = { icon: FileText, color: "text-cyber-primary", bgColor: "bg-cyber-primary/20", headerBg: "bg-cyber-primary/5" };
 
 export default function DocsPage() {
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [docs, setDocs] = useState<PublishedDoc[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/documents")
+      .then((r) => (r.ok ? r.json() : { docs: [] }))
+      .then((data) => setDocs(data.docs || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const copyToClipboard = async (cmd: string) => {
     await navigator.clipboard.writeText(cmd);
@@ -121,13 +67,25 @@ export default function DocsPage() {
     setTimeout(() => setCopiedCmd(null), 2000);
   };
 
-  const filteredCategories = docCategories.filter((cat) => {
+  // Group docs by category
+  const grouped = docs.reduce<Record<string, PublishedDoc[]>>((acc, doc) => {
+    const cat = doc.category || "General";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(doc);
+    return acc;
+  }, {});
+
+  const filteredCategories = Object.entries(grouped).filter(([cat, items]) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
-      cat.title.toLowerCase().includes(q) ||
-      cat.description.toLowerCase().includes(q) ||
-      cat.docs.some((d) => d.title.toLowerCase().includes(q))
+      cat.toLowerCase().includes(q) ||
+      items.some(
+        (d) =>
+          d.title.toLowerCase().includes(q) ||
+          d.description.toLowerCase().includes(q) ||
+          d.tags.some((t) => t.toLowerCase().includes(q))
+      )
     );
   });
 
@@ -145,7 +103,6 @@ export default function DocsPage() {
           </p>
         </div>
 
-        {/* Terminal Search — full width */}
         <TerminalSearchMini
           value={searchQuery}
           onChange={setSearchQuery}
@@ -155,54 +112,81 @@ export default function DocsPage() {
 
       {/* Documentation Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Categories Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 mb-8">
-          {filteredCategories.map((category) => {
-            const Icon = category.icon;
-            return (
-              <div key={category.id} className="cyber-card overflow-hidden">
-                <div className={`p-4 border-b border-cyber-border ${category.headerBg}`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${category.iconBg}`}>
-                      <Icon className={`w-5 h-5 ${category.iconText}`} />
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-cyber-primary animate-spin" />
+          </div>
+        ) : docs.length === 0 ? (
+          <div className="text-center py-16">
+            <FileText className="w-12 h-12 text-cyber-muted mx-auto mb-3 opacity-30" />
+            <p className="text-cyber-muted mb-2">No published documents yet</p>
+            <p className="text-xs text-cyber-muted">Documents created in the admin panel will appear here once published.</p>
+          </div>
+        ) : (
+          <>
+            {/* Categories Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 mb-8">
+              {filteredCategories.map(([category, items]) => {
+                const meta = categoryMeta[category] || defaultMeta;
+                const Icon = meta.icon;
+
+                const filteredItems = searchQuery
+                  ? items.filter(
+                      (d) =>
+                        d.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        d.description.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                  : items;
+
+                if (filteredItems.length === 0) return null;
+
+                return (
+                  <div key={category} className="cyber-card overflow-hidden">
+                    <div className={`p-4 border-b border-cyber-border ${meta.headerBg}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${meta.bgColor}`}>
+                          <Icon className={`w-5 h-5 ${meta.color}`} />
+                        </div>
+                        <div>
+                          <h2 className="font-semibold text-cyber-text">{category}</h2>
+                          <p className="text-xs text-cyber-muted">{filteredItems.length} document{filteredItems.length !== 1 ? "s" : ""}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="font-semibold text-cyber-text">{category.title}</h2>
-                      <p className="text-xs text-cyber-muted">{category.description}</p>
+                    <div className="p-2">
+                      {filteredItems.map((doc) => (
+                        <Link
+                          key={doc.slug}
+                          href={`/docs/${doc.slug}`}
+                          className="flex items-center justify-between px-3 py-2 rounded-lg
+                                   text-cyber-muted hover:text-cyber-text hover:bg-cyber-border/50
+                                   transition-colors group"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileText className="w-4 h-4 flex-shrink-0" />
+                            <div className="min-w-0">
+                              <span className="text-sm block truncate">{doc.title}</span>
+                              {doc.description && (
+                                <span className="text-[10px] text-cyber-muted block truncate">{doc.description}</span>
+                              )}
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                        </Link>
+                      ))}
                     </div>
                   </div>
-                </div>
-                <div className="p-2">
-                  {category.docs
-                    .filter((doc) =>
-                      !searchQuery || doc.title.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((doc) => (
-                      <Link
-                        key={doc.slug}
-                        href={`/docs/${category.id}/${doc.slug}`}
-                        className="flex items-center justify-between px-3 py-2 rounded-lg
-                                 text-cyber-muted hover:text-cyber-text hover:bg-cyber-border/50
-                                 transition-colors group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
-                          <span className="text-sm">{doc.title}</span>
-                        </div>
-                        <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Link>
-                    ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
 
-        {filteredCategories.length === 0 && (
-          <div className="text-center py-12 text-cyber-muted">
-            <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>No documentation found matching &quot;{searchQuery}&quot;</p>
-          </div>
+            {filteredCategories.length === 0 && (
+              <div className="text-center py-12 text-cyber-muted">
+                <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No documentation found matching &quot;{searchQuery}&quot;</p>
+              </div>
+            )}
+          </>
         )}
 
         {/* Quick Reference */}

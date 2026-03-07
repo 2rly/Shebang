@@ -22,7 +22,7 @@ export async function lookupSubdomains(
   try {
     const res = await fetch(
       `${BASE_URL}/?q=%25.${encodeURIComponent(domain)}&output=json`,
-      { signal: AbortSignal.timeout(20_000) }
+      { signal: AbortSignal.timeout(10_000) }
     );
 
     if (!res.ok) {

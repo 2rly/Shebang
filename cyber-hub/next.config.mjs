@@ -7,6 +7,7 @@ const nextConfig = {
   transpilePackages: ["@excalidraw/excalidraw"],
   // better-sqlite3 is a native module — keep it out of the webpack bundle
   serverExternalPackages: ["better-sqlite3"],
+  devIndicators: false,
 };
 
 export default nextConfig;

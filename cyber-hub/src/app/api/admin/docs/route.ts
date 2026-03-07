@@ -11,14 +11,14 @@ export async function GET() {
   const db = getDb();
   const rows = db.prepare(`
     SELECT d.id, d.author_id as authorId, u.username as authorName,
-           d.title, d.description, d.category, d.content, d.tags,
+           d.title, d.slug, d.description, d.category, d.content, d.tags,
            d.status, d.created_at as createdAt, d.updated_at as updatedAt
     FROM admin_docs d
     JOIN users u ON u.id = d.author_id
     ORDER BY d.updated_at DESC
   `).all() as Array<{
     id: number; authorId: number; authorName: string; title: string;
-    description: string; category: string; content: string;
+    slug: string; description: string; category: string; content: string;
     tags: string; status: string; createdAt: string; updatedAt: string;
   }>;
 
@@ -43,12 +43,21 @@ export async function POST(req: Request) {
   }
 
   const db = getDb();
+
+  // Auto-generate slug from title, ensure uniqueness
+  let slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const existing = db.prepare("SELECT id FROM admin_docs WHERE slug = ?").get(slug);
+  if (existing) {
+    slug = `${slug}-${Date.now()}`;
+  }
+
   const result = db.prepare(`
-    INSERT INTO admin_docs (author_id, title, description, category, content, tags, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO admin_docs (author_id, title, slug, description, category, content, tags, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     user.id,
     title,
+    slug,
     description || "",
     category || "General",
     content,
@@ -56,5 +65,5 @@ export async function POST(req: Request) {
     status || "draft",
   );
 
-  return NextResponse.json({ ok: true, id: result.lastInsertRowid });
+  return NextResponse.json({ ok: true, id: result.lastInsertRowid, slug });
 }

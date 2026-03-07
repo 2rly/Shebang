@@ -23,6 +23,7 @@ interface AdminDoc {
   authorId: number;
   authorName: string;
   title: string;
+  slug: string;
   description: string;
   category: string;
   content: string;
@@ -258,6 +259,9 @@ export default function AdminDocsPage() {
                   <h3 className="text-sm font-medium text-cyber-text truncate">{item.title}</h3>
                 </div>
                 <p className="text-xs text-cyber-muted truncate">{item.description || "No description"}</p>
+                {item.slug && item.status === "published" && (
+                  <a href={`/docs/${item.slug}`} target="_blank" rel="noopener" className="text-[10px] font-mono text-cyber-secondary hover:underline">/docs/{item.slug}</a>
+                )}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button onClick={() => startEdit(item)} className="p-2 text-cyber-muted hover:text-cyber-secondary transition-colors" title="Edit"><Edit3 className="w-4 h-4" /></button>

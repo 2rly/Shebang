@@ -143,6 +143,20 @@ function createDb(): Database.Database {
     db.exec(`ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'`);
   }
 
+  // Migration: add slug column to admin_docs if missing
+  const docCols = db.prepare("PRAGMA table_info(admin_docs)").all() as { name: string }[];
+  const docColNames = docCols.map((c) => c.name);
+  if (!docColNames.includes("slug")) {
+    db.exec(`ALTER TABLE admin_docs ADD COLUMN slug TEXT NOT NULL DEFAULT ''`);
+    // Backfill slugs for existing rows
+    const existingDocs = db.prepare("SELECT id, title FROM admin_docs WHERE slug = ''").all() as { id: number; title: string }[];
+    const updateSlug = db.prepare("UPDATE admin_docs SET slug = ? WHERE id = ?");
+    for (const doc of existingDocs) {
+      const slug = doc.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      updateSlug.run(slug, doc.id);
+    }
+  }
+
   return db;
 }
 

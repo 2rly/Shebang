@@ -41,7 +41,7 @@ async function checkPlatform(
     const res = await fetch(url, {
       method: "HEAD",
       redirect: "follow",
-      signal: AbortSignal.timeout(8_000),
+      signal: AbortSignal.timeout(5_000),
       headers: {
         "User-Agent": "CyberHub-OSINT-Platform/1.0",
       },

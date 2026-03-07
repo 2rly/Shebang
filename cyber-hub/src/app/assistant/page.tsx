@@ -306,6 +306,9 @@ export default function AssistantPage() {
         body: JSON.stringify({ message: content.trim() }),
       });
 
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
       const data = await res.json();
 
       const assistantMessage: Message = {

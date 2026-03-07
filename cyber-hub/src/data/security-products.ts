@@ -2082,4 +2082,19 @@ export const securityProducts: SecurityProduct[] = [
     patchCount: 0,
     enabled: true,
   },
+  {
+    name: "FortiWeb WAF",
+    vendor: "Fortinet",
+    category: "WAF",
+    nvdKeyword: "FortiWeb",
+    rssFeed: "",
+
+    latestVersion: "8.0.4",
+    versionSource: "web",
+    versionDate: "2026-03-07",
+    versionLink: "https://docs.fortinet.com/product/fortiweb/8.0",
+    cveCount: 0,
+    patchCount: 0,
+    enabled: true,
+  },
 ];

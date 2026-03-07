@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -15,6 +15,10 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
+
+export const viewport: Viewport = {
+  width: 1200,
+};
 
 export const metadata: Metadata = {
   title: "shebang.az | Security Engineering Platform",
@@ -38,12 +42,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <head>
-        <meta name="viewport" content="width=1280" />
-      </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-cyber-bg text-cyber-text antialiased`}>
         <AuthProvider>
-          <div className="flex h-[100dvh] overflow-hidden min-w-[1280px]">
+          <div className="flex h-[100dvh] overflow-hidden min-w-[1200px]">
             <Sidebar />
             <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
               <Header />

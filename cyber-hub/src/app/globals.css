@@ -41,7 +41,7 @@ body {
   background-color: var(--cyber-bg);
   color: var(--cyber-text);
   font-family: "Inter", system-ui, sans-serif;
-  min-width: 1280px;
+  min-width: 1200px;
   overflow-x: auto;
 }
 
@@ -279,4 +279,11 @@ pre {
   max-width: 100%;
 }
 
-/* Mobile media query removed — desktop-only layout enforced via viewport meta width=1280 */
+/* ============================================
+   DESKTOP-ONLY LAYOUT
+   viewport meta width=1200 forces the browser
+   to render at 1200px on all devices.
+   All Tailwind breakpoints (sm/md/lg) resolve
+   to desktop values since 1200 > 1024.
+   No mobile stacking or drawer menus.
+   ============================================ */

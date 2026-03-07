@@ -15,6 +15,21 @@ import { checkIP as abuseipdbCheck } from "@/lib/intelligence/services/abuseipdb
 import { searchIOC } from "@/lib/intelligence/services/threatfox";
 import type { MagicSearchResponse } from "@/types/intelligence";
 
+// Wrap a promise with a timeout — returns a timeout error if the promise doesn't resolve in time
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms)
+    ),
+  ]);
+}
+
+// Global timeout for the entire fan-out (15 seconds)
+const GLOBAL_TIMEOUT_MS = 15_000;
+// Per-service timeout (10 seconds)
+const SERVICE_TIMEOUT_MS = 10_000;
+
 export async function POST(request: NextRequest) {
   let body: { query?: string };
   try {
@@ -45,59 +60,74 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Fan out to all relevant services in parallel
+  // Fan out to all relevant services in parallel, each with a per-service timeout
   const tasks: Record<string, Promise<any>> = {};
 
   for (const service of services) {
     switch (service) {
       case "virustotal":
-        tasks.virustotal =
-          detection.type === "url" ? lookupUrl(query) : lookupHash(query);
+        tasks.virustotal = withTimeout(
+          detection.type === "url" ? lookupUrl(query) : lookupHash(query),
+          SERVICE_TIMEOUT_MS, "VirusTotal"
+        );
         break;
       case "shodan":
-        tasks.shodan = shodanLookup(query);
+        tasks.shodan = withTimeout(shodanLookup(query), SERVICE_TIMEOUT_MS, "Shodan");
         break;
       case "exploitdb":
-        tasks.exploitdb = searchExploits(query);
+        tasks.exploitdb = withTimeout(searchExploits(query), SERVICE_TIMEOUT_MS, "Exploit-DB");
         break;
       case "dns-whois":
-        tasks["dns-whois"] = lookupDomain(query);
+        tasks["dns-whois"] = withTimeout(lookupDomain(query), SERVICE_TIMEOUT_MS, "DNS/WHOIS");
         break;
       case "breach-check":
-        tasks["breach-check"] = checkBreaches(query);
+        tasks["breach-check"] = withTimeout(checkBreaches(query), SERVICE_TIMEOUT_MS, "HIBP");
         break;
       case "crtsh":
-        tasks.crtsh = lookupSubdomains(query);
+        tasks.crtsh = withTimeout(lookupSubdomains(query), SERVICE_TIMEOUT_MS, "crt.sh");
         break;
       case "alienvault":
-        tasks.alienvault = lookupIndicator(
-          query,
-          detection.type === "ip" ? "ip" : "domain"
+        tasks.alienvault = withTimeout(
+          lookupIndicator(query, detection.type === "ip" ? "ip" : "domain"),
+          SERVICE_TIMEOUT_MS, "AlienVault"
         );
         break;
       case "censys":
-        tasks.censys = censysLookup(query);
+        tasks.censys = withTimeout(censysLookup(query), SERVICE_TIMEOUT_MS, "Censys");
         break;
       case "greynoise":
-        tasks.greynoise = greynoiseLookup(query);
+        tasks.greynoise = withTimeout(greynoiseLookup(query), SERVICE_TIMEOUT_MS, "GreyNoise");
         break;
       case "username-check":
-        tasks["username-check"] = checkUsername(query);
+        tasks["username-check"] = withTimeout(checkUsername(query), SERVICE_TIMEOUT_MS, "Username Check");
         break;
       case "epieos":
-        tasks.epieos = lookupEmail(query);
+        tasks.epieos = withTimeout(lookupEmail(query), SERVICE_TIMEOUT_MS, "Epieos");
         break;
       case "abuseipdb":
-        tasks.abuseipdb = abuseipdbCheck(query);
+        tasks.abuseipdb = withTimeout(abuseipdbCheck(query), SERVICE_TIMEOUT_MS, "AbuseIPDB");
         break;
       case "threatfox":
-        tasks.threatfox = searchIOC(query);
+        tasks.threatfox = withTimeout(searchIOC(query), SERVICE_TIMEOUT_MS, "ThreatFox");
         break;
     }
   }
 
+  // Wait for all services with a global timeout
   const keys = Object.keys(tasks);
-  const settled = await Promise.allSettled(Object.values(tasks));
+
+  const settledPromise = Promise.allSettled(Object.values(tasks));
+  const globalTimeout = new Promise<PromiseSettledResult<any>[]>((resolve) =>
+    setTimeout(() => {
+      // On global timeout, resolve with timeout errors for any still-pending
+      resolve(keys.map(() => ({
+        status: "rejected" as const,
+        reason: new Error("Global timeout — partial results returned"),
+      })));
+    }, GLOBAL_TIMEOUT_MS)
+  );
+
+  const settled = await Promise.race([settledPromise, globalTimeout]);
 
   const results: MagicSearchResponse["results"] = {};
   const errors: Record<string, string> = {};
@@ -107,7 +137,6 @@ export async function POST(request: NextRequest) {
     if (outcome.status === "fulfilled") {
       const res = outcome.value;
       if (res.success) {
-        // Map task keys to result object keys
         const resultKeyMap: Record<string, keyof MagicSearchResponse["results"]> = {
           "dns-whois": "dnsWhois",
           "breach-check": "breachCheck",
