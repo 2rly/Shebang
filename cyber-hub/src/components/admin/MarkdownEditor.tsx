@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, Edit3, Bold, Code, List, Link2, ImageIcon, Heading } from "lucide-react";
+import { Eye, Edit3, Bold, Code, List, Link2, ImageIcon, Heading, Upload } from "lucide-react";
+import FileUpload from "./FileUpload";
 
 interface MarkdownEditorProps {
   value: string;
@@ -57,6 +58,7 @@ function insertAtCursor(textarea: HTMLTextAreaElement, before: string, after: st
 
 export default function MarkdownEditor({ value, onChange, placeholder, minHeight = "300px" }: MarkdownEditorProps) {
   const [mode, setMode] = useState<"write" | "preview">("write");
+  const [showUpload, setShowUpload] = useState(false);
 
   const handleToolbar = (action: string) => {
     const textarea = document.getElementById("md-editor") as HTMLTextAreaElement;
@@ -115,6 +117,15 @@ export default function MarkdownEditor({ value, onChange, placeholder, minHeight
               </button>
             );
           })}
+          <div className="w-px h-4 bg-cyber-border mx-1" />
+          <button
+            type="button"
+            onClick={() => setShowUpload(true)}
+            className="p-1.5 rounded text-cyber-secondary hover:text-cyber-text hover:bg-cyber-secondary/10 transition-colors"
+            title="Upload File"
+          >
+            <Upload className="w-4 h-4" />
+          </button>
         </div>
         <div className="flex items-center gap-1 border border-cyber-border rounded-lg overflow-hidden">
           <button
@@ -157,6 +168,22 @@ export default function MarkdownEditor({ value, onChange, placeholder, minHeight
           className="p-4 prose prose-invert max-w-none overflow-y-auto"
           style={{ minHeight }}
           dangerouslySetInnerHTML={{ __html: renderPreview(value) || '<p class="text-cyber-muted italic">Nothing to preview yet...</p>' }}
+        />
+      )}
+
+      {showUpload && (
+        <FileUpload
+          onUpload={(result) => {
+            const textarea = document.getElementById("md-editor") as HTMLTextAreaElement;
+            if (textarea) {
+              textarea.focus();
+              document.execCommand("insertText", false, "\n" + result.markdown + "\n");
+              onChange(textarea.value);
+            } else {
+              onChange(value + "\n" + result.markdown + "\n");
+            }
+          }}
+          onClose={() => setShowUpload(false)}
         />
       )}
     </div>

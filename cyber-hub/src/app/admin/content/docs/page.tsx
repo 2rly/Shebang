@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import MarkdownEditor from "@/components/admin/MarkdownEditor";
 import TagInput from "@/components/admin/TagInput";
+import DocAttachments from "@/components/admin/DocAttachments";
 
 interface AdminDoc {
   id: number;
@@ -96,13 +97,22 @@ export default function AdminDocsPage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (res.ok) { await fetchItems(); cancelEdit(); }
+      if (res.ok) {
+        const data = await res.json();
+        await fetchItems();
+        // Switch to edit mode so attachments become available
+        if (data.doc) {
+          startEdit(data.doc);
+        } else {
+          cancelEdit();
+        }
+      }
     } else if (editing) {
       const res = await fetch(`/api/admin/docs/${editing.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (res.ok) { await fetchItems(); cancelEdit(); }
+      if (res.ok) { await fetchItems(); }
     }
     setSaving(false);
   };
@@ -168,6 +178,17 @@ export default function AdminDocsPage() {
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-cyber-muted mb-1">Content</label>
             <MarkdownEditor value={content} onChange={setContent} placeholder="Write documentation in Markdown..." minHeight="400px" />
+          </div>
+
+          {/* Attachments Section */}
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-wider text-cyber-muted mb-1">Attachments</label>
+            <DocAttachments
+              docId={editing?.id ?? null}
+              onInsert={(markdown) => {
+                setContent((prev) => prev + "\n" + markdown + "\n");
+              }}
+            />
           </div>
 
           <div className="flex items-center gap-3 pt-2">

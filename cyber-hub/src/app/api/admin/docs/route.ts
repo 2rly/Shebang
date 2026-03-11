@@ -65,5 +65,21 @@ export async function POST(req: Request) {
     status || "draft",
   );
 
-  return NextResponse.json({ ok: true, id: result.lastInsertRowid, slug });
+  // Return the full doc so the client can switch to edit mode
+  const newDoc = db.prepare(`
+    SELECT d.id, d.author_id as authorId, u.username as authorName,
+           d.title, d.slug, d.description, d.category, d.content, d.tags,
+           d.status, d.created_at as createdAt, d.updated_at as updatedAt
+    FROM admin_docs d
+    JOIN users u ON u.id = d.author_id
+    WHERE d.id = ?
+  `).get(result.lastInsertRowid) as {
+    id: number; authorId: number; authorName: string; title: string;
+    slug: string; description: string; category: string; content: string;
+    tags: string; status: string; createdAt: string; updatedAt: string;
+  } | undefined;
+
+  const doc = newDoc ? { ...newDoc, tags: JSON.parse(newDoc.tags || "[]") } : null;
+
+  return NextResponse.json({ ok: true, id: result.lastInsertRowid, slug, doc });
 }

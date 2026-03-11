@@ -143,6 +143,16 @@ function createDb(): Database.Database {
     db.exec(`ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'`);
   }
 
+  // Migration: add doc_id column to media_uploads if missing
+  const mediaCols = db.prepare("PRAGMA table_info(media_uploads)").all() as { name: string }[];
+  const mediaColNames = mediaCols.map((c) => c.name);
+  if (!mediaColNames.includes("doc_id")) {
+    db.exec(`ALTER TABLE media_uploads ADD COLUMN doc_id INTEGER REFERENCES admin_docs(id) ON DELETE SET NULL`);
+  }
+  if (!mediaColNames.includes("url")) {
+    db.exec(`ALTER TABLE media_uploads ADD COLUMN url TEXT NOT NULL DEFAULT ''`);
+  }
+
   // Migration: add slug column to admin_docs if missing
   const docCols = db.prepare("PRAGMA table_info(admin_docs)").all() as { name: string }[];
   const docColNames = docCols.map((c) => c.name);
