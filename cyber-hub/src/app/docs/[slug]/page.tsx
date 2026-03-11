@@ -47,6 +47,11 @@ function renderMarkdown(md: string): string {
     // Bold and italic
     .replace(/\*\*(.+?)\*\*/g, '<strong class="text-cyber-text font-bold">$1</strong>')
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    // Excalidraw file links → open in Topology viewer
+    .replace(
+      /\[([^\]]+)\]\(([^)]*\.excalidraw)\)/g,
+      '<a href="/topology?file=$2" class="inline-flex items-center gap-1 px-2 py-1 text-xs font-mono bg-cyber-warning/10 text-cyber-warning rounded border border-cyber-warning/20 hover:bg-cyber-warning/20 transition-colors no-underline" target="_blank" rel="noopener">&#x1f5fa; Open in Topology: $1</a>'
+    )
     // Links
     .replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,

@@ -87,9 +87,14 @@ const libraryAdapter = {
   },
 };
 
-export default function ExcalidrawWrapper() {
+interface ExcalidrawWrapperProps {
+  fileUrl?: string;
+}
+
+export default function ExcalidrawWrapper({ fileUrl }: ExcalidrawWrapperProps) {
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
   const [initialData] = useState(loadSavedScene);
+  const [fileLoaded, setFileLoaded] = useState(false);
   const autoSaveRef = useRef<ReturnType<typeof setTimeout>>();
 
   /* ─── Library persistence ─── */
@@ -97,6 +102,45 @@ export default function ExcalidrawWrapper() {
     excalidrawAPI,
     adapter: libraryAdapter,
   } as any);
+
+  /* ─── Load .excalidraw file from URL ─── */
+  useEffect(() => {
+    if (!fileUrl || !excalidrawAPI || fileLoaded) return;
+
+    (async () => {
+      try {
+        const res = await fetch(fileUrl);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.elements) {
+          excalidrawAPI.updateScene({
+            elements: data.elements,
+            appState: {
+              ...data.appState,
+              viewBackgroundColor: data.appState?.viewBackgroundColor || "#ffffff",
+            },
+          });
+
+          // Load embedded files (images) if present
+          if (data.files && Object.keys(data.files).length > 0) {
+            excalidrawAPI.addFiles(
+              Object.values(data.files).map((f: any) => ({
+                ...f,
+                created: f.created || Date.now(),
+              }))
+            );
+          }
+
+          // Fit view to loaded content
+          excalidrawAPI.scrollToContent(data.elements, { fitToContent: true });
+          setFileLoaded(true);
+        }
+      } catch (err) {
+        console.error("Failed to load .excalidraw file:", err);
+      }
+    })();
+  }, [fileUrl, excalidrawAPI, fileLoaded]);
 
   /* ─── Auto-save scene to localStorage (debounced 2s) ─── */
   const handleChange = useCallback(

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import {
   Paperclip,
   Upload,
@@ -13,6 +14,7 @@ import {
   Loader2,
   AlertCircle,
   X,
+  ExternalLink,
 } from "lucide-react";
 
 interface Attachment {
@@ -289,6 +291,17 @@ export default function DocAttachments({ docId, onInsert }: DocAttachmentsProps)
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    {att.originalName.endsWith(".excalidraw") && (
+                      <Link
+                        href={`/topology?file=${encodeURIComponent(att.url)}`}
+                        target="_blank"
+                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono bg-cyber-warning/10 text-cyber-warning rounded hover:bg-cyber-warning/20 transition-colors"
+                        title="Open in Topology viewer"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Topology
+                      </Link>
+                    )}
                     <button
                       type="button"
                       onClick={() => insertMarkdown(att)}
