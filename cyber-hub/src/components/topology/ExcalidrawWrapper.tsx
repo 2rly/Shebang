@@ -93,9 +93,45 @@ interface ExcalidrawWrapperProps {
 
 export default function ExcalidrawWrapper({ fileUrl }: ExcalidrawWrapperProps) {
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
-  const [initialData] = useState(loadSavedScene);
-  const [fileLoaded, setFileLoaded] = useState(false);
+  const [initialData, setInitialData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const isFileMode = !!fileUrl;
   const autoSaveRef = useRef<ReturnType<typeof setTimeout>>();
+
+  /* ─── Load initial data: from URL if fileUrl, otherwise localStorage ─── */
+  useEffect(() => {
+    if (fileUrl) {
+      // File mode: fetch the .excalidraw file
+      (async () => {
+        try {
+          const res = await fetch(fileUrl);
+          if (res.ok) {
+            const data = await res.json();
+            const bg = data.appState?.viewBackgroundColor;
+            setInitialData({
+              elements: data.elements || [],
+              appState: {
+                ...(data.appState || {}),
+                viewBackgroundColor: bg || "#ffffff",
+              },
+              files: data.files || undefined,
+              scrollToContent: true,
+            });
+          } else {
+            setInitialData(loadSavedScene());
+          }
+        } catch (err) {
+          console.error("Failed to load .excalidraw file:", err);
+          setInitialData(loadSavedScene());
+        }
+        setLoading(false);
+      })();
+    } else {
+      // Normal mode: load from localStorage
+      setInitialData(loadSavedScene());
+      setLoading(false);
+    }
+  }, [fileUrl]);
 
   /* ─── Library persistence ─── */
   useHandleLibrary({
@@ -103,48 +139,26 @@ export default function ExcalidrawWrapper({ fileUrl }: ExcalidrawWrapperProps) {
     adapter: libraryAdapter,
   } as any);
 
-  /* ─── Load .excalidraw file from URL ─── */
+  /* ─── Scroll to content after API is ready in file mode ─── */
   useEffect(() => {
-    if (!fileUrl || !excalidrawAPI || fileLoaded) return;
-
-    (async () => {
+    if (!isFileMode || !excalidrawAPI || !initialData?.elements?.length) return;
+    // Small delay to ensure scene is rendered
+    const timer = setTimeout(() => {
       try {
-        const res = await fetch(fileUrl);
-        if (!res.ok) return;
-        const data = await res.json();
+        excalidrawAPI.scrollToContent(excalidrawAPI.getSceneElements(), {
+          fitToContent: true,
+        });
+      } catch {}
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [isFileMode, excalidrawAPI, initialData]);
 
-        if (data.elements) {
-          excalidrawAPI.updateScene({
-            elements: data.elements,
-            appState: {
-              ...data.appState,
-              viewBackgroundColor: data.appState?.viewBackgroundColor || "#ffffff",
-            },
-          });
-
-          // Load embedded files (images) if present
-          if (data.files && Object.keys(data.files).length > 0) {
-            excalidrawAPI.addFiles(
-              Object.values(data.files).map((f: any) => ({
-                ...f,
-                created: f.created || Date.now(),
-              }))
-            );
-          }
-
-          // Fit view to loaded content
-          excalidrawAPI.scrollToContent(data.elements, { fitToContent: true });
-          setFileLoaded(true);
-        }
-      } catch (err) {
-        console.error("Failed to load .excalidraw file:", err);
-      }
-    })();
-  }, [fileUrl, excalidrawAPI, fileLoaded]);
-
-  /* ─── Auto-save scene to localStorage (debounced 2s) ─── */
+  /* ─── Auto-save scene to localStorage (only in normal mode) ─── */
   const handleChange = useCallback(
     (elements: readonly any[], appState: any, files: any) => {
+      // Don't save to localStorage when viewing an uploaded file
+      if (isFileMode) return;
+
       if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
       autoSaveRef.current = setTimeout(() => {
         try {
@@ -168,7 +182,7 @@ export default function ExcalidrawWrapper({ fileUrl }: ExcalidrawWrapperProps) {
         } catch {}
       }, 2000);
     },
-    [],
+    [isFileMode],
   );
 
   /* ─── Cleanup timers on unmount ─── */
@@ -177,6 +191,20 @@ export default function ExcalidrawWrapper({ fileUrl }: ExcalidrawWrapperProps) {
       if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
     };
   }, []);
+
+  /* ─── Show loader while fetching file ─── */
+  if (loading || !initialData) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-full border-4 border-blue-200 border-t-blue-500 animate-spin" />
+          <p style={{ fontFamily: "monospace", fontSize: 14, color: "#868e96" }}>
+            Loading diagram...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
