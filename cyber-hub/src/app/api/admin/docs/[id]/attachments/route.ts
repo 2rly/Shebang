@@ -17,6 +17,11 @@ const ALLOWED_TYPES = [
   "text/plain",
   "text/markdown",
   "application/json",
+  "application/octet-stream",
+];
+const ALLOWED_EXTENSIONS = [
+  ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg",
+  ".pdf", ".txt", ".md", ".json", ".excalidraw",
 ];
 
 function sanitizeFilename(name: string): string {
@@ -85,9 +90,10 @@ export async function POST(
       );
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const ext = "." + (file.name.split(".").pop()?.toLowerCase() || "");
+    if (!ALLOWED_TYPES.includes(file.type) && !ALLOWED_EXTENSIONS.includes(ext)) {
       return NextResponse.json(
-        { error: `File type "${file.type}" is not allowed.` },
+        { error: `File type "${file.type}" (${ext}) is not allowed.` },
         { status: 400 }
       );
     }

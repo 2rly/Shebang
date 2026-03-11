@@ -201,7 +201,7 @@ export default function DocAttachments({ docId, onInsert }: DocAttachmentsProps)
           ref={inputRef}
           type="file"
           onChange={handleFileSelect}
-          accept="image/*,.pdf,.txt,.md,.json"
+          accept="image/*,.pdf,.txt,.md,.json,.excalidraw"
           className="hidden"
         />
       </div>
