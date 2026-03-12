@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Eye, Edit3, Bold, Code, List, Link2, ImageIcon, Heading, Upload } from "lucide-react";
 import FileUpload from "./FileUpload";
+import CodeBlock from "@/components/ui/CodeBlock";
 
 interface MarkdownEditorProps {
   value: string;
@@ -11,11 +12,35 @@ interface MarkdownEditorProps {
   minHeight?: string;
 }
 
-function renderPreview(md: string) {
-  // Lightweight markdown to HTML for preview
-  let html = md
-    // Code blocks
-    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="bg-cyber-bg border border-cyber-border rounded-lg p-3 my-2 overflow-x-auto"><code class="text-cyber-primary text-xs font-mono">$2</code></pre>')
+interface PreviewSegment {
+  type: "text" | "code";
+  content: string;
+  language?: string;
+}
+
+function parsePreviewContent(md: string): PreviewSegment[] {
+  const segments: PreviewSegment[] = [];
+  const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = codeBlockRegex.exec(md)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ type: "text", content: md.slice(lastIndex, match.index) });
+    }
+    segments.push({ type: "code", content: match[2], language: match[1] || "bash" });
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < md.length) {
+    segments.push({ type: "text", content: md.slice(lastIndex) });
+  }
+
+  return segments;
+}
+
+function renderInlinePreview(md: string): string {
+  const html = md
     // Inline code
     .replace(/`([^`]+)`/g, '<code class="bg-cyber-bg px-1.5 py-0.5 rounded text-cyber-primary text-xs font-mono">$1</code>')
     // Headers
@@ -54,6 +79,30 @@ function insertAtCursor(textarea: HTMLTextAreaElement, before: string, after: st
   // Set cursor position
   const newPos = start + before.length + (selected || "text").length;
   textarea.setSelectionRange(newPos, newPos);
+}
+
+function PreviewContent({ value, minHeight }: { value: string; minHeight: string }) {
+  const segments = useMemo(() => parsePreviewContent(value), [value]);
+
+  if (!value) {
+    return (
+      <div className="p-4 prose prose-invert max-w-none overflow-y-auto" style={{ minHeight }}>
+        <p className="text-cyber-muted italic">Nothing to preview yet...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 prose prose-invert max-w-none overflow-y-auto" style={{ minHeight }}>
+      {segments.map((seg, i) =>
+        seg.type === "code" ? (
+          <CodeBlock key={i} code={seg.content} language={seg.language} />
+        ) : (
+          <div key={i} dangerouslySetInnerHTML={{ __html: renderInlinePreview(seg.content) }} />
+        )
+      )}
+    </div>
+  );
 }
 
 export default function MarkdownEditor({ value, onChange, placeholder, minHeight = "300px" }: MarkdownEditorProps) {
@@ -164,11 +213,7 @@ export default function MarkdownEditor({ value, onChange, placeholder, minHeight
           style={{ minHeight }}
         />
       ) : (
-        <div
-          className="p-4 prose prose-invert max-w-none overflow-y-auto"
-          style={{ minHeight }}
-          dangerouslySetInnerHTML={{ __html: renderPreview(value) || '<p class="text-cyber-muted italic">Nothing to preview yet...</p>' }}
-        />
+        <PreviewContent value={value} minHeight={minHeight} />
       )}
 
       {showUpload && (

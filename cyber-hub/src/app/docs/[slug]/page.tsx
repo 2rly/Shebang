@@ -14,6 +14,7 @@ import {
   Copy,
   Check,
 } from "lucide-react";
+import CodeBlock from "@/components/ui/CodeBlock";
 
 interface DocDetail {
   id: number;
@@ -28,13 +29,40 @@ interface DocDetail {
   authorName: string;
 }
 
-function renderMarkdown(md: string): string {
+/* ─── Split markdown into text segments and code blocks ─── */
+interface ContentSegment {
+  type: "text" | "code";
+  content: string;
+  language?: string;
+}
+
+function parseContent(md: string): ContentSegment[] {
+  const segments: ContentSegment[] = [];
+  const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = codeBlockRegex.exec(md)) !== null) {
+    // Text before the code block
+    if (match.index > lastIndex) {
+      segments.push({ type: "text", content: md.slice(lastIndex, match.index) });
+    }
+    // The code block
+    segments.push({ type: "code", content: match[2], language: match[1] || "bash" });
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Remaining text after last code block
+  if (lastIndex < md.length) {
+    segments.push({ type: "text", content: md.slice(lastIndex) });
+  }
+
+  return segments;
+}
+
+/* ─── Render non-code markdown to HTML ─── */
+function renderInlineMarkdown(md: string): string {
   return md
-    // Code blocks
-    .replace(
-      /```(\w*)\n([\s\S]*?)```/g,
-      '<pre class="bg-cyber-bg border border-cyber-border rounded-lg p-4 my-3 overflow-x-auto"><code class="text-cyber-primary text-sm font-mono">$2</code></pre>'
-    )
     // Inline code
     .replace(
       /`([^`]+)`/g,
@@ -199,12 +227,20 @@ export default function DocDetailPage() {
 
         {/* Document content */}
         <div className="cyber-card p-6 md:p-8">
-          <div
-            className="prose prose-invert max-w-none"
-            dangerouslySetInnerHTML={{
-              __html: `<p class="text-cyber-text text-sm leading-relaxed">${renderMarkdown(doc.content)}</p>`,
-            }}
-          />
+          <div className="prose prose-invert max-w-none">
+            {parseContent(doc.content).map((segment, i) =>
+              segment.type === "code" ? (
+                <CodeBlock key={i} code={segment.content} language={segment.language} />
+              ) : (
+                <div
+                  key={i}
+                  dangerouslySetInnerHTML={{
+                    __html: `<p class="text-cyber-text text-sm leading-relaxed">${renderInlineMarkdown(segment.content)}</p>`,
+                  }}
+                />
+              )
+            )}
+          </div>
         </div>
       </div>
     </div>
