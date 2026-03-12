@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { Highlight, themes } from "prism-react-renderer";
 import { Copy, Check } from "lucide-react";
+import { registerLanguages } from "@/lib/prism-languages";
+
+/* Register bash, powershell, docker, etc. into Prism */
+registerLanguages();
 
 /* ─── Custom cyberpunk theme ─── */
 const cyberTheme: typeof themes.dracula = {
