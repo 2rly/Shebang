@@ -219,7 +219,7 @@ export default function CodeBlock({ code, language = "" }: CodeBlockProps) {
           <Highlight theme={cyberTheme} code={code.trimEnd()} language={prismLang}>
             {({ className, style, tokens, getLineProps, getTokenProps }) => (
               <pre
-                className={`${className} px-4 py-4 text-sm font-mono leading-relaxed`}
+                className={`${className} px-4 py-4 text-[13px] font-mono leading-relaxed`}
                 style={{ ...style, background: "transparent", margin: 0 }}
               >
                 {tokens.map((line, i) => {

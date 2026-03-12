@@ -96,13 +96,13 @@ function renderInlineMarkdown(md: string): string {
       '<blockquote class="border-l-2 border-cyber-primary pl-4 my-3 text-cyber-muted italic">$1</blockquote>'
     )
     // Unordered lists
-    .replace(/^- (.+)$/gm, '<li class="ml-4 text-cyber-text text-sm leading-relaxed">$1</li>')
+    .replace(/^- (.+)$/gm, '<li class="ml-4 text-cyber-text text-[13px] leading-relaxed">$1</li>')
     // Ordered lists
     .replace(/^\d+\. (.+)$/gm, '<li class="ml-4 text-cyber-text text-sm list-decimal leading-relaxed">$1</li>')
     // Horizontal rule
     .replace(/^---$/gm, '<hr class="border-cyber-border my-6" />')
     // Paragraphs
-    .replace(/\n\n/g, '</p><p class="text-cyber-text text-sm leading-relaxed my-3">')
+    .replace(/\n\n/g, '</p><p class="text-cyber-text text-[13px] leading-relaxed my-3">')
     // Single newlines
     .replace(/\n/g, "<br />");
 }
@@ -235,7 +235,7 @@ export default function DocDetailPage() {
                 <div
                   key={i}
                   dangerouslySetInnerHTML={{
-                    __html: `<p class="text-cyber-text text-sm leading-relaxed">${renderInlineMarkdown(segment.content)}</p>`,
+                    __html: `<p class="text-cyber-text text-[13px] leading-relaxed">${renderInlineMarkdown(segment.content)}</p>`,
                   }}
                 />
               )
