@@ -95,6 +95,7 @@ export default function ExcalidrawWrapper({ fileUrl }: ExcalidrawWrapperProps) {
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
   const [initialData, setInitialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [fileError, setFileError] = useState<string | null>(null);
   const isFileMode = !!fileUrl;
   const autoSaveRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -118,11 +119,11 @@ export default function ExcalidrawWrapper({ fileUrl }: ExcalidrawWrapperProps) {
               scrollToContent: true,
             });
           } else {
-            setInitialData(loadSavedScene());
+            setFileError(`Topology faylı tapılmadı (${res.status}). Fayl silinmiş və ya hələ upload olunmamış ola bilər.`);
           }
         } catch (err) {
           console.error("Failed to load .excalidraw file:", err);
-          setInitialData(loadSavedScene());
+          setFileError("Topology faylını yükləmək mümkün olmadı. Şəbəkə xətası.");
         }
         setLoading(false);
       })();
@@ -193,7 +194,7 @@ export default function ExcalidrawWrapper({ fileUrl }: ExcalidrawWrapperProps) {
   }, []);
 
   /* ─── Show loader while fetching file ─── */
-  if (loading || !initialData) {
+  if (loading) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
@@ -205,6 +206,28 @@ export default function ExcalidrawWrapper({ fileUrl }: ExcalidrawWrapperProps) {
       </div>
     );
   }
+
+  /* ─── Show error if file failed to load ─── */
+  if (fileError) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4 max-w-md text-center">
+          <div style={{ fontSize: 48 }}>&#x26A0;</div>
+          <p style={{ fontFamily: "monospace", fontSize: 14, color: "#e03131", fontWeight: 600 }}>
+            {fileError}
+          </p>
+          <a
+            href="/topology"
+            style={{ fontFamily: "monospace", fontSize: 13, color: "#228be6", textDecoration: "underline" }}
+          >
+            Boş Topology açmaq üçün klikləyin
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (!initialData) return null;
 
   return (
     <div
