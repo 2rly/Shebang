@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   title: "shebang.az | Security Engineering Platform",
   description:
     "#!/bin/security - Comprehensive cybersecurity engineering hub for documentation, news, articles, and community",
+  icons: {
+    icon: "/icon.svg",
+  },
   keywords: [
     "cybersecurity",
     "infosec",
